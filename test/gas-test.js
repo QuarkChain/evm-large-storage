@@ -2,7 +2,7 @@ const { web3 } = require("hardhat");
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-let local_tester = async function (size) {
+let local_tester = async function (size, puts = 1) {
   const StorageManager = await ethers.getContractFactory(
     "StorageManagerLocalTest"
   );
@@ -14,16 +14,18 @@ let local_tester = async function (size) {
     value.push(1);
   }
 
-  await sm.put(
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
-    value
-  );
+  for (let i = 0; i < puts; i++) {
+    await sm.put(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        value
+    );
+    }
   await sm.getWithoutView(
     "0x0000000000000000000000000000000000000000000000000000000000000000"
   );
 };
 
-let large_tester = async function (size) {
+let large_tester = async function (size, puts = 1) {
   const StorageManager = await ethers.getContractFactory("StorageManagerTest");
   const sm = await StorageManager.deploy();
   await sm.deployed();
@@ -33,10 +35,12 @@ let large_tester = async function (size) {
     value.push(1);
   }
 
-  await sm.put(
-    "0x0000000000000000000000000000000000000000000000000000000000000000",
-    value
-  );
+  for (let i = 0; i < puts; i++) {
+    await sm.put(
+        "0x0000000000000000000000000000000000000000000000000000000000000000",
+        value
+    );
+    }
   await sm.getWithoutView(
     "0x0000000000000000000000000000000000000000000000000000000000000000"
   );
@@ -59,6 +63,14 @@ describe("StorageManager Gas Test", function () {
     await large_tester(12288);
   });
 
+//   it("put/get non-replace 16k", async function () {
+//     await large_tester(16384);
+//   });
+
+  it("put/get inplace 12k", async function () {
+    await large_tester(12288, 2);
+  });
+
   it("put/get non-replace 1k (local storage)", async function () {
     await local_tester(1024);
   });
@@ -73,5 +85,13 @@ describe("StorageManager Gas Test", function () {
 
   it("put/get non-replace 12k (local storage)", async function () {
     await local_tester(12288);
+  });
+
+//   it("put/get non-replace 16k (local storage)", async function () {
+//     await local_tester(16384);
+//   });
+
+  it("put/get inplace 12k (local storage)", async function () {
+    await local_tester(12288, 2);
   });
 });
