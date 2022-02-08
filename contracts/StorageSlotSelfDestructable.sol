@@ -2,9 +2,9 @@
 pragma solidity ^0.8.0;
 
 contract StorageSlotSelfDestructable {
-    address immutable public owner;
-    
-    constructor () {
+    address public immutable owner;
+
+    constructor() {
         owner = msg.sender;
     }
 
