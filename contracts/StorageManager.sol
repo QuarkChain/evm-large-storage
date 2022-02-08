@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./Memory.sol";
 import "./StorageSlotSelfDestructable.sol";
+import "./StorageSlotFactory.sol";
 
 contract StorageManager {
     // StorageSlotSelfDestructable compiled via solc 0.8.7 optimized 200
@@ -10,7 +11,7 @@ contract StorageManager {
     uint256 constant ADDR_OFF0 = 67;
     uint256 constant ADDR_OFF1 = 140;
 
-    mapping (bytes32 => address) keyToContract;
+    mapping (bytes32 => address) internal keyToContract;
 
     function _put(bytes32 key, bytes memory data) internal {
         address addr = keyToContract[key];
@@ -30,33 +31,21 @@ contract StorageManager {
             mstore(0x40, add(bytecode, and(add(add(newSize, 0x20), 0x1f), not(0x1f))))
         }
         // append data to self-destruct byte code
-        Memory.copy(Memory.dataPtr(data), Memory.dataPtr(bytecode) + bytecode.length, data.length);
+        Memory.copy(Memory.dataPtr(data), Memory.dataPtr(bytecode) + STORAGE_SLOT_CODE.length, data.length);
         {
             // revise the owner to the contract (so that it is destructable)
             uint256 off = ADDR_OFF0 + 0x20;
             assembly {
-                mstore(add(mload(bytecode), off), caller())
+                mstore(add(bytecode, off), address())
             }
             off = ADDR_OFF1 + 0x20;
             assembly {
-                mstore(add(mload(bytecode), off), caller())
+                mstore(add(bytecode, off), address())
             }
         }
 
-        // create the contract
-        assembly {
-            addr := create2(
-                0,
-                // Actual code starts after skipping the first 32 bytes
-                add(bytecode, 0x20),
-                mload(bytecode),
-                key // salt
-            )
-
-            if iszero(extcodesize(addr)) {
-                revert(0, 0)
-            }
-        }
+        StorageSlotFactoryFromInput c = new StorageSlotFactoryFromInput(bytecode);
+        addr = address(c);
 
         keyToContract[key] = addr;
     }

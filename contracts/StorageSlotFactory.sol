@@ -40,7 +40,7 @@ contract StorageSlotFromContract {
 }
 
 // Create a storage slot
-contract StorageSlotFromInput {
+contract StorageSlotFactoryFromInput {
     constructor (bytes memory codeAndData) payable {
         uint256 size = codeAndData.length;
         // Return the contract manually
