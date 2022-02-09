@@ -154,4 +154,14 @@ contract StorageManager {
         }
         return (data, true);
     }
+
+    function _remove(bytes32 key) internal returns (bool) {
+        address addr = keyToContract[key];
+        if (addr == address(0x0)) {
+            return false;
+        }
+
+        StorageSlotSelfDestructable(addr).destruct();
+        return true;
+    }
 }
