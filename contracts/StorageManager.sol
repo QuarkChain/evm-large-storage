@@ -21,7 +21,7 @@ contract StorageManager {
 
     mapping(bytes32 => address) internal keyToContract;
 
-    function _put(bytes32 key, bytes memory data) internal {
+    function _put(bytes32 key, bytes memory data, uint256 value) internal {
         address addr = keyToContract[key];
         if (addr != address(0x0)) {
             // remove the KV first if it exists
@@ -60,7 +60,7 @@ contract StorageManager {
             }
         }
 
-        StorageSlotFactoryFromInput c = new StorageSlotFactoryFromInput(
+        StorageSlotFactoryFromInput c = new StorageSlotFactoryFromInput{value: value}(
             bytecode
         );
         addr = address(c);
@@ -68,7 +68,7 @@ contract StorageManager {
         keyToContract[key] = addr;
     }
 
-    function _put2(bytes32 key, bytes memory data) internal {
+    function _put2(bytes32 key, bytes memory data, uint256 value) internal {
         address addr = keyToContract[key];
         if (addr != address(0x0)) {
             // remove the KV first if it exists
@@ -117,7 +117,7 @@ contract StorageManager {
 
         assembly {
             addr := create2(
-                0,
+                value,
                 add(bytecode, 0x20), // data offset
                 mload(bytecode), // size
                 key

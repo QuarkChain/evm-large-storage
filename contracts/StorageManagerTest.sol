@@ -16,10 +16,10 @@ contract StorageManagerTest is StorageManager {
     }
 
     function put(bytes32 key, bytes memory data) public {
-        _put(key, data);
+        _put(key, data, 0);
     }
 
     function put2(bytes32 key, bytes memory data) public {
-        _put2(key, data);
+        _put2(key, data, 0);
     }
 }
