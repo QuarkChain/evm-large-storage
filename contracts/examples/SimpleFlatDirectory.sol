@@ -48,9 +48,10 @@ contract SimpleFlatDirectory is StorageManager {
         _put(b32, data, msg.value);
     }
 
-    function remove(bytes32 node) public returns (bool) {
+    function remove(bytes memory filename) public returns (bool) {
         require(msg.sender == owner, "must from owner");
-        return _remove(node);
+        bytes32 b32 = bytesToBytes32(filename);
+        return _remove(b32);
     }
 
     function destruct() public {
