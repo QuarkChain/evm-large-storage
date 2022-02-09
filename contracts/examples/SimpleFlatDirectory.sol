@@ -52,4 +52,9 @@ contract SimpleFlatDirectory is StorageManager {
         require(msg.sender == owner, "must from owner");
         return _remove(node);
     }
+
+    function destruct() public {
+        require(msg.sender == owner, "must from owner");
+        selfdestruct(payable(owner));
+    }
 }
