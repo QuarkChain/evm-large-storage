@@ -1,6 +1,6 @@
 # evm-large-storage
 
-The repo offers a gas-efficient large-object KV storage using contract code as storage space.  It also provides CRUD semantics to get/put/delete the entries in the storage.
+The repo offers a gas-efficient large-object key-value store using contract code as storage space.  It also provides CRUD semantics to get/put/remove the entries in the store.
 
 # Gas Comparison
 
