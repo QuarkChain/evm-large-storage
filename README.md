@@ -11,3 +11,6 @@ The repo offers a gas-efficient large-object key-value store using contract code
 | Code storage (get) | 30502 (1/3.15x) | 38987 (1/7.96x) | 50525 (1/11.8x)| 62319 (1 / 14.1x) |
 | Code storage (put) | 387383 (1/ 2x) | 1128673 (1/2.61x) | 2117788 (1/2.76x)| 3104698 (1 / 2.82x)|
 
+# Deployment on Web3Q Testnet (Temp)
+
+NameService: 0x5095135E861845dee965141fEA9061F38C85c699
