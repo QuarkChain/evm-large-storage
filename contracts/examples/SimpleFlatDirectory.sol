@@ -7,13 +7,16 @@ import "../StorageManager.sol";
 contract SimpleFlatDirectory is StorageManager {
     bytes public defaultFile = "";
     address public immutable owner;
-    bytes32 public resolveMode = "auto";
 
     constructor() {
         owner = msg.sender;
     }
 
-    fallback() external {
+    function resolveMode() virtual external pure returns (bytes32) {
+        return "auto";
+    }
+
+    fallback() virtual external {
         // looks like return data does not work, use assembly
         bytes memory data = files(defaultFile);
         bytes memory returnData = abi.encode(data);
@@ -52,6 +55,11 @@ contract SimpleFlatDirectory is StorageManager {
         require(msg.sender == owner, "must from owner");
         bytes32 b32 = bytesToBytes32(filename);
         return _remove(b32);
+    }
+
+    function refund() public {
+        require(msg.sender == owner, "must from owner");
+        payable(owner).transfer(address(this).balance);
     }
 
     function destruct() public {
