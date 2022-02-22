@@ -6,11 +6,6 @@ import "../W3RC3.sol";
 
 contract FlatDirectory is W3RC3 {
     bytes public defaultFile = "";
-    address public owner;
-
-    constructor() {
-        owner = msg.sender;
-    }
 
     function resolveMode() external pure virtual returns (bytes32) {
         return "manual";

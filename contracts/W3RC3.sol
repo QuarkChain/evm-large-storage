@@ -6,8 +6,20 @@ import "./LargeStorageManager.sol";
 
 contract W3RC3 is IW3RC3, LargeStorageManager  {
 
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function changeOwner(address newOwner) public  {
+        require(msg.sender == owner, "must from owner");
+        owner = newOwner;
+    }
+
     // Large storage methods
     function write(bytes memory name, bytes memory data) public override payable {
+        require(msg.sender == owner, "must from owner");
         // TODO: support multiple chunks
         return _putChunk(keccak256(name), 0, data, msg.value);
     }
@@ -21,6 +33,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager  {
     }
 
     function remove(bytes memory name) public override returns (uint256) {
+        require(msg.sender == owner, "must from owner");
         return _remove(keccak256(name));
     }
 
@@ -30,6 +43,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager  {
 
     // Chunk-based large storage methods
     function writeChunk(bytes memory name, uint256 chunkId, bytes memory data) public override payable {
+        require(msg.sender == owner, "must from owner");
         return _putChunk(keccak256(name), chunkId, data, msg.value);
     }
 
@@ -42,6 +56,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager  {
     }
 
     function removeChunk(bytes memory name, uint256 chunkId) public override returns (bool) {
+        require(msg.sender == owner, "must from owner");
         return _removeChunk(keccak256(name), chunkId);
     }
 }
