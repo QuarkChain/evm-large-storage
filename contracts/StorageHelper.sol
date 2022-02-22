@@ -113,4 +113,52 @@ library StorageHelper {
         }
         return addr;
     }
+
+    function sizeRaw(address addr) internal view returns (uint256, bool) {
+        if (addr == address(0x0)) {
+            return (0, false);
+        }
+        uint256 codeSize;
+        uint256 off = STORAGE_SLOT_CODE.length;
+        assembly {
+            codeSize := extcodesize(addr)
+        }
+        if (codeSize < off) {
+            return (0, false);
+        }
+
+        return (codeSize - off, true);
+    }
+
+    function getRaw(address addr) internal view returns (bytes memory, bool) {
+        (uint256 dataSize, bool found) = sizeRaw(addr);
+
+        if (!found) {
+            return (new bytes(0), false);
+        }
+
+        // copy the data without the "code"
+        bytes memory data = new bytes(dataSize);
+        uint256 off = STORAGE_SLOT_CODE.length;
+        assembly {
+            // retrieve data size
+            extcodecopy(addr, add(data, 0x20), off, dataSize)
+        }
+        return (data, true);
+    }
+
+    function getRawAt(address addr, uint256 memoryPtr) internal view returns (uint256, bool) {
+        (uint256 dataSize, bool found) = sizeRaw(addr);
+
+        if (!found) {
+            return (0, false);
+        }
+
+        uint256 off = STORAGE_SLOT_CODE.length;
+        assembly {
+            // retrieve data size
+            extcodecopy(addr, memoryPtr, off, dataSize)
+        }
+        return (dataSize, true);
+    }
 }

@@ -30,26 +30,7 @@ contract StorageManager {
 
     function _get(bytes32 key) internal view returns (bytes memory, bool) {
         address addr = keyToContract[key];
-        if (addr == address(0x0)) {
-            return (new bytes(0), false);
-        }
-        uint256 codeSize;
-        uint256 off = StorageHelper.STORAGE_SLOT_CODE.length;
-        assembly {
-            codeSize := extcodesize(addr)
-        }
-        if (codeSize < off) {
-            return (new bytes(0), false);
-        }
-
-        // copy the data without the "code"
-        uint256 dataSize = codeSize - off;
-        bytes memory data = new bytes(dataSize);
-        assembly {
-            // retrieve data size
-            extcodecopy(addr, add(data, 0x20), off, dataSize)
-        }
-        return (data, true);
+        return StorageHelper.getRaw(addr);
     }
 
     function _remove(bytes32 key) internal returns (bool) {
