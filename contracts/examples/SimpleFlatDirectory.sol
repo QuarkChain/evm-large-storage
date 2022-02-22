@@ -12,11 +12,11 @@ contract SimpleFlatDirectory is StorageManager {
         owner = msg.sender;
     }
 
-    function resolveMode() virtual external pure returns (bytes32) {
+    function resolveMode() external pure virtual returns (bytes32) {
         return "auto";
     }
 
-    fallback() virtual external {
+    fallback() external virtual {
         // looks like return data does not work, use assembly
         bytes memory data = files(defaultFile);
         bytes memory returnData = abi.encode(data);
