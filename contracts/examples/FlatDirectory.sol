@@ -27,8 +27,8 @@ contract FlatDirectory is W3RC3 {
             (content, ) = read(cdata[1:]);
         }
 
-        bytes memory returnData = abi.encode(content);
-        return returnData;
+        StorageHelper.returnBytesInplace(content);
+        return content;
     }
 
     function setDefault(bytes memory _defaultFile) public {

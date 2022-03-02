@@ -27,7 +27,7 @@ module.exports = {
   networks: {
     hardhat: {
       initialBaseFeePerGas: 0, // workaround from https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136 . Remove when that issue is closed.
-      blockGasLimit: 1000000000,
+      blockGasLimit: 3000000000,
     },
     rinkeby: {
       url: process.env.RINKEBY_URL || "",
