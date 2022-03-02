@@ -6,26 +6,42 @@ import "./StorageSlotSelfDestructable.sol";
 
 // Large storage manager to support arbitrarily-sized data with multiple chunk
 contract LargeStorageManager {
-    mapping(bytes32 => mapping (uint256 => address)) internal keyToContract;
+    mapping(bytes32 => mapping(uint256 => address)) internal keyToContract;
 
-    function _putChunk(bytes32 key, uint256 chunkId, bytes memory data, uint256 value) internal {
+    function _putChunk(
+        bytes32 key,
+        uint256 chunkId,
+        bytes memory data,
+        uint256 value
+    ) internal {
         address addr = keyToContract[key][chunkId];
         if (addr != address(0x0)) {
             // remove the KV first if it exists
             StorageSlotSelfDestructable(addr).destruct();
         } else {
-            require(chunkId == 0 || keyToContract[key][chunkId-1] != address(0x0), "must replace or append");
+            require(
+                chunkId == 0 || keyToContract[key][chunkId - 1] != address(0x0),
+                "must replace or append"
+            );
         }
 
         keyToContract[key][chunkId] = StorageHelper.putRaw(data, value);
     }
 
-    function _getChunk(bytes32 key, uint256 chunkId) internal view returns (bytes memory, bool) {
+    function _getChunk(bytes32 key, uint256 chunkId)
+        internal
+        view
+        returns (bytes memory, bool)
+    {
         address addr = keyToContract[key][chunkId];
         return StorageHelper.getRaw(addr);
     }
 
-    function _chunkSize(bytes32 key, uint256 chunkId) internal view returns (uint256, bool) {
+    function _chunkSize(bytes32 key, uint256 chunkId)
+        internal
+        view
+        returns (uint256, bool)
+    {
         address addr = keyToContract[key][chunkId];
         return StorageHelper.sizeRaw(addr);
     }
@@ -39,7 +55,7 @@ contract LargeStorageManager {
                 break;
             }
 
-            chunkId ++;
+            chunkId++;
         }
 
         return chunkId;
@@ -58,7 +74,7 @@ contract LargeStorageManager {
             }
 
             size += chunkSize;
-            chunkId ++;
+            chunkId++;
         }
 
         return (size, chunkId);
@@ -75,9 +91,9 @@ contract LargeStorageManager {
         assembly {
             dataPtr := add(data, 0x20)
         }
-        for (uint256 chunkId = 0; chunkId < chunkNum; chunkId ++) {
+        for (uint256 chunkId = 0; chunkId < chunkNum; chunkId++) {
             address addr = keyToContract[key][chunkId];
-            (uint256 chunkSize,) = StorageHelper.sizeRaw(addr);
+            (uint256 chunkSize, ) = StorageHelper.sizeRaw(addr);
 
             StorageHelper.getRawAt(addr, dataPtr);
             dataPtr += chunkSize;
@@ -99,13 +115,16 @@ contract LargeStorageManager {
             StorageSlotSelfDestructable(addr).destruct();
             keyToContract[key][chunkId] = address(0x0);
 
-            chunkId ++;
+            chunkId++;
         }
 
         return chunkId;
     }
 
-    function _removeChunk(bytes32 key, uint256 chunkId) internal returns (bool) {
+    function _removeChunk(bytes32 key, uint256 chunkId)
+        internal
+        returns (bool)
+    {
         address addr = keyToContract[key][chunkId];
         if (addr == address(0x0)) {
             return false;

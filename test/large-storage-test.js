@@ -91,13 +91,10 @@ describe("FlatDirectory Test", function () {
     await fd.removeChunk("0x616263", 1); // should succeed
     expect(await fd.size("0x616263")).to.eql([ToBig(10), ToBig(1)]);
     expect(await fd.read("0x616263")).to.eql([
-        ethers.utils.hexlify(data0),
-        true,
-      ]);
-    expect(await fd.readChunk("0x616263", 1)).to.eql([
-      "0x",
-      false,
+      ethers.utils.hexlify(data0),
+      true,
     ]);
+    expect(await fd.readChunk("0x616263", 1)).to.eql(["0x", false]);
     expect(await fd.countChunks("0x616263")).to.eql(ToBig(1));
   });
 });

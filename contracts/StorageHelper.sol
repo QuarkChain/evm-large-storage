@@ -18,7 +18,10 @@ library StorageHelper {
     uint256 internal constant FACTORY_ADDR_OFF0 = 305 + 32 + ADDR_OFF0;
     uint256 internal constant FACTORY_ADDR_OFF1 = 305 + 32 + ADDR_OFF1;
 
-    function putRaw(bytes memory data, uint256 value) internal returns (address) {
+    function putRaw(bytes memory data, uint256 value)
+        internal
+        returns (address)
+    {
         // create the new contract code with the data
         bytes memory bytecode = STORAGE_SLOT_CODE;
         uint256 bytecodeLen = bytecode.length;
@@ -51,13 +54,17 @@ library StorageHelper {
             }
         }
 
-        StorageSlotFactoryFromInput c = new StorageSlotFactoryFromInput{value: value}(
-            bytecode
-        );
+        StorageSlotFactoryFromInput c = new StorageSlotFactoryFromInput{
+            value: value
+        }(bytecode);
         return address(c);
     }
 
-    function putRaw2(bytes32 key, bytes memory data, uint256 value) internal returns (address) {
+    function putRaw2(
+        bytes32 key,
+        bytes memory data,
+        uint256 value
+    ) internal returns (address) {
         // create the new contract code with the data
         bytes memory bytecode = FACTORY_CODE;
         uint256 bytecodeLen = bytecode.length;
@@ -147,7 +154,11 @@ library StorageHelper {
         return (data, true);
     }
 
-    function getRawAt(address addr, uint256 memoryPtr) internal view returns (uint256, bool) {
+    function getRawAt(address addr, uint256 memoryPtr)
+        internal
+        view
+        returns (uint256, bool)
+    {
         (uint256 dataSize, bool found) = sizeRaw(addr);
 
         if (!found) {
@@ -160,5 +171,16 @@ library StorageHelper {
             extcodecopy(addr, memoryPtr, off, dataSize)
         }
         return (dataSize, true);
+    }
+
+    function returnBytesInplace(bytes memory content) internal pure {
+        // equal to return abi.encode(content)
+        uint256 size = content.length + 0x40; // pointer + size
+        size = (size + 0x20 + 0x1f) & ~uint256(0x1f);
+        assembly {
+            // (DATA CORRUPTION): the caller method must be "external returns (bytes)", cannot be public!
+            mstore(sub(content, 0x20), 0x20)
+            return(sub(content, 0x20), size)
+        }
     }
 }
