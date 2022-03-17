@@ -54,7 +54,6 @@ let StoreInSlot_tester = async function (size){
         await checkData(sis,i,ev.toHexString());
     }
     
-    printGas(size.toString(),receipt1,receipt2,receipt3);
 }
 
 let checkLen = async function (contract ,slot = 0, expectLen ){

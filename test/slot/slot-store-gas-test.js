@@ -9,7 +9,6 @@ let printGas = function print(size,r1,r2,r3){
     console.log(`${size.toString()} byte   ${r1.gasUsed}   ${r2.gasUsed}   ${r3.gasUsed}`)
 }
 
-
 let StoreInSlotByDynamicArray_tester = async function(size) {
     const StoreInSlotByDynamicArray = await ethers.getContractFactory(
         "StoreInSlotByDynamicArray"
@@ -46,8 +45,6 @@ let StoreInSlotByDynamicArray_tester = async function(size) {
     printGas(size,receipt1,receipt2,receipt3);
 
 }
-
-
 
 let StoreInSlot_common_tester = async function (name,size){
     const contract = await ethers.getContractFactory(
@@ -104,6 +101,7 @@ let StoreInRuntimeCode_tester = async function (size){
     console.log("gasUsed:",receipt.gasUsed.toString());
 
 }
+
 describe("Store In Slot Gas Test",function () {
 
     for (let size=32;size<=4096;size*=2){
@@ -113,58 +111,33 @@ describe("Store In Slot Gas Test",function () {
         })
     }
 
-    // for (let size=32;size<=4096;size*=2){
-    //     let Info = "StoreInSlotByDynamicArray test " + size.toString() + " byte"
-    //     it(Info,async function () {
-    //         await StoreInSlotByDynamicArray_tester(size);
-    //     })
-    // }
+    for (let size=32;size<=4096;size*=2){
+        let Info = "StoreInSlotByDynamicArray test " + size.toString() + " byte"
+        it(Info,async function () {
+            await StoreInSlotByDynamicArray_tester(size);
+        })
+    }
     
-    // for (let size=32;size<=4096;size*=2){
-    //     let Info = "StoreInSlotByStaticArray test " + size.toString() + " byte"
-    //     it(Info,async function () {
-    //         await StoreInSlot_common_tester("StoreInSlotByStaticArray",size);
-    //     })
-    // }
-    // it("StoreInSlotByStaticArray test 32byte ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByStaticArray",32);
-    // })
+    for (let size=32;size<=4096;size*=2){
+        let Info = "StoreInSlotByStaticArray test " + size.toString() + " byte"
+        it(Info,async function () {
+            await StoreInSlot_common_tester("StoreInSlotByStaticArray",size);
+        })
+    }
 
-    // it("StoreInSlotByStaticArray test 512byte ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByStaticArray",512);
-    // })
-
-    // it("StoreInSlotByStaticArray test 1k ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByStaticArray",1024);
-    // })
-
-    // it("StoreInSlotByStaticArray test 2k ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByStaticArray",2048);
-    // })
-
-    // it("StoreInSlotByStaticArray test 4k ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByStaticArray",4096);
-    // })
-
-    // it("StoreInSlotByMap test 32byte ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByMap",32);
-    // })
-
-    // it("StoreInSlotByMap test 512byte ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByMap",512);
-    // })
-
-    // it("StoreInSlotByMap test 1k ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByMap",1024);
-    // })
-
-    // it("StoreInSlotByMap test 2k ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByMap",2048);
-    // })
-
-    // it("StoreInSlotByMap test 4k ",async function () {
-    //     await StoreInSlot_common_tester("StoreInSlotByMap",4096);
-    // })
+    for (let size=32;size<=4096;size*=2){
+        let Info = "StoreInSlotByMap test " + size.toString() + " byte"
+        it(Info,async function () {
+            await StoreInSlot_common_tester("StoreInSlotByMap",size);
+        })
+    }
+    
+    for (let size=32;size<=4096;size*=2){
+        let Info = "StoreInRuntimeCode test " + size.toString() + " byte"
+        it(Info,async function () {
+            await StoreInRuntimeCode_tester(size);
+        })
+    }
 
     // it("StoreInRuntimeCode_tester test 32byte",async function(){
     //     await StoreInRuntimeCode_tester(32)
