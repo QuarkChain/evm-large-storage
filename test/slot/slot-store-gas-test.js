@@ -1,13 +1,14 @@
 const { web3 } = require("hardhat");
 const { expect} = require("chai")
 const { ethers } = require("hardhat");
-const { BigNumber } = require("ethers");
-const { string } = require("hardhat/internal/core/params/argumentTypes");
+var fs = require("fs");
 
 
-let printGas = function print(size,r1,r2,r3){
-    console.log(`${size.toString()} byte   ${r1.gasUsed}   ${r2.gasUsed}   ${r3.gasUsed}`)
+let printGas = function (size,r1,r2,r3){
+    const context = `${size.toString()}byte   ${r1.gasUsed}   ${r2.gasUsed}   ${r3.gasUsed}\n`;
+    console.log(context);
 }
+
 
 let StoreInSlotByDynamicArray_tester = async function(size) {
     const StoreInSlotByDynamicArray = await ethers.getContractFactory(
@@ -102,10 +103,14 @@ let StoreInRuntimeCode_tester = async function (size){
 
 }
 
+
 describe("Store In Slot Gas Test",function () {
+
+    
 
     for (let size=32;size<=4096;size*=2){
         let Info = "StoreInSlot test " + size.toString() + " byte"
+        
         it(Info,async function () {
             await StoreInSlot_common_tester("StoreInSlot",size);
         })
@@ -138,22 +143,6 @@ describe("Store In Slot Gas Test",function () {
             await StoreInRuntimeCode_tester(size);
         })
     }
-
-    // it("StoreInRuntimeCode_tester test 32byte",async function(){
-    //     await StoreInRuntimeCode_tester(32)
-    // })
-
-    // it("StoreInRuntimeCode_tester test 64byte",async function(){
-    //     await StoreInRuntimeCode_tester(64)
-    // })
-
-    // it("StoreInRuntimeCode_tester test 128byte",async function(){
-    //     await StoreInRuntimeCode_tester(128)
-    // })
-
-    // it("StoreInRuntimeCode_tester test 160byte",async function(){
-    //     await StoreInRuntimeCode_tester(160)
-    // })
 
 
 })
