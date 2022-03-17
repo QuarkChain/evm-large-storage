@@ -29,10 +29,22 @@ library StorageHelper {
         assembly {
             // in-place resize of bytecode bytes
             // note that this must be done when bytecode is the last allocated object by solidity.
+            // bytes 前32byte存储len
             mstore(bytecode, newSize)
+
+            // 存储空闲指针
             // notify solidity about the memory size increase, must be 32-bytes aligned
             mstore(
                 0x40,
+                // add(newSize, 0x20) -> bytecode的总长度
+                // 对于memory来说，每个存储单位是32byte
+                // bytecode总长度有可能不是32的整数倍
+                // add(bytecode总长度,0x1f)
+                // 2**5 = 32
+                // 0x1f = 011111
+                
+                // 32 + 32 = 64 --> 64+31 = 95 -->  and(95,)
+                //not(0x1f) --> ...111100000
                 add(bytecode, and(add(add(newSize, 0x20), 0x1f), not(0x1f)))
             )
         }
@@ -42,6 +54,7 @@ library StorageHelper {
             Memory.dataPtr(bytecode) + bytecodeLen,
             data.length
         );
+
         {
             // revise the owner to the contract (so that it is destructable)
             uint256 off = ADDR_OFF0 + 0x20;
@@ -80,6 +93,7 @@ library StorageHelper {
             )
         }
         // append data to self-destruct byte code
+        // FACTORY_CODE + data[0x20:]
         Memory.copy(
             Memory.dataPtr(data),
             Memory.dataPtr(bytecode) + bytecodeLen,

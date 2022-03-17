@@ -19,6 +19,7 @@ contract LargeStorageManager {
             // remove the KV first if it exists
             StorageSlotSelfDestructable(addr).destruct();
         } else {
+            // chunkId必须是连续的
             require(
                 chunkId == 0 || keyToContract[key][chunkId - 1] != address(0x0),
                 "must replace or append"
@@ -28,6 +29,7 @@ contract LargeStorageManager {
         keyToContract[key][chunkId] = StorageHelper.putRaw(data, value);
     }
 
+    // 
     function _getChunk(bytes32 key, uint256 chunkId)
         internal
         view
