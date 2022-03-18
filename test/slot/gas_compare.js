@@ -129,11 +129,6 @@ let run = async function(){
         await StoreInSlotByDynamicArray_tester(size);
     }
     
-    writeInFile('\n-------Case StoreInSlotByDynamicArray-------\n');
-    for (let size=32;size<=MaxSize;size+=32){
-        await StoreInSlotByDynamicArray_tester(size);
-    }
-    
     writeInFile('\n-------Case StoreInSlotByStaticArray-------\n');
     for (let size=32;size<=MaxSize;size+=32){
         await StoreInSlot_common_tester("StoreInSlotByStaticArray",size);
