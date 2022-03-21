@@ -1,0 +1,11 @@
+Size			StoreInSlotByDynamicArray			StoreInSlotByStaticArray			StoreInSlotByMap			StoreInRuntimeCode			StoreInRuntimeCodeWithSelfDestruct
+
+32byte  			30545 			                    28328 								28377   					66968       				130607        																	           
+64byte  			36671 			                    34303 								34401   					73964       				137604        																	          
+128byte 			48923 			                    46253 								46449   					87956       				151596    																	    
+256byte 			73427 			                    70153 								70545   					115941      				179581   																	    
+512byte 			122435			                    117953								118737  					171910      				235553   																	    
+1024byte			220453			                    213555								215123  					283853    					347498  																 
+2048byte			416492			                    404762								407898  					507751   					571401  																
+4096byte			808582			                    787188								793460  					955595   					1019255																
+8192byte			159280			                    155208								1564631						1851474 					1915155																			
