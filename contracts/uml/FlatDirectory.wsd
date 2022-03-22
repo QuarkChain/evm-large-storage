@@ -54,6 +54,7 @@ class LargeStorageManager {
     ' -- inheritance --
 
     ' -- usingFor --
+	{abstract}StorageHelper
 
     ' -- vars --
 	#[[mapping bytes32=>mapping uint256=>address  ]] keyToContract
@@ -102,5 +103,6 @@ abstract StorageHelper {
 W3RC3 --[#DarkGoldenRod]|> IW3RC3
 W3RC3 --[#DarkGoldenRod]|> LargeStorageManager
 FlatDirectory --[#DarkGoldenRod]|> W3RC3
+LargeStorageManager --[#DarkGoldenRod]|> StorageHelper
 
 @enduml
