@@ -1,11 +1,7 @@
 pragma solidity ^0.8.0;
 
 contract Bitmap{
-    uint256 public constant BitmapSlot = 1000000000000000;
-
-    constructor() {
-
-    }
+    uint256 public constant BITMAPSLOT = 1000000000000000;
 
     //empty: return 1 ;no empry: return 0
     function isEmptySlots(uint sslot,uint eslot)public view returns(uint256 succeed) {
@@ -15,7 +11,7 @@ contract Bitmap{
         }
 
         assembly{
-            let _bitmap := sload(BitmapSlot)
+            let _bitmap := sload(BITMAPSLOT)
 
             // zero ,succeed =1
             succeed := iszero(and(_bitmap,tmp))
@@ -25,7 +21,6 @@ contract Bitmap{
     function storeInExpectSlots(bytes memory data,uint sslot,uint eslot) public {
         require(isEmptySlots(sslot,eslot)==1 ,"BITMAP: no empty slots");
         uint len = data.length;
-        // (sslot,eslot) = getFreeSpaceByLen(len);
         uint currentSlot =sslot;
         for (uint i=0;i*32<len;i++) {
             assembly{
@@ -42,10 +37,11 @@ contract Bitmap{
             tmp += 2**ptr;
         }
         assembly{
-            let newBitmapVal := or(sload(BitmapSlot),tmp)
-            sstore(BitmapSlot,newBitmapVal)
+            let newBitmapVal := or(sload(BITMAPSLOT),tmp)
+            sstore(BITMAPSLOT,newBitmapVal)
         }  
     }
+
     // under 8k
     function store(bytes memory data)public returns(uint sslot,uint eslot){
         uint len = data.length;
@@ -67,8 +63,8 @@ contract Bitmap{
             tmp += 2**ptr;
         }
         assembly{
-            let newBitmapVal := or(sload(BitmapSlot),tmp)
-            sstore(BitmapSlot,newBitmapVal)
+            let newBitmapVal := or(sload(BITMAPSLOT),tmp)
+            sstore(BITMAPSLOT,newBitmapVal)
         }  
     }
 
@@ -80,11 +76,11 @@ contract Bitmap{
         }
 
         assembly{
-            let _bitmap := sload(BitmapSlot)
+            let _bitmap := sload(BITMAPSLOT)
             tmp := not(tmp)
 
             _bitmap := and(tmp,_bitmap)
-            sstore(BitmapSlot,_bitmap)
+            sstore(BITMAPSLOT,_bitmap)
         }
     }
     function deleteSlotBylen(uint sslot,uint datalen)public {
@@ -102,11 +98,10 @@ contract Bitmap{
 
     // return: [begin,end)
     function getFreeSpace(uint needSlotNum)public view returns(uint,uint) {
-        // 遍历bitMap slot找到可以存储
         uint tmp = 2 ** needSlotNum - 1;
         bytes32 _bitmap;
         assembly{
-            _bitmap := sload(BitmapSlot)
+            _bitmap := sload(BITMAPSLOT)
         }
 
         bytes32 res;
@@ -139,7 +134,7 @@ contract Bitmap{
 
     function bitmap() public view returns(bytes32 res){
         assembly{
-            res := sload(BitmapSlot)
+            res := sload(BITMAPSLOT)
         }
     }
 
