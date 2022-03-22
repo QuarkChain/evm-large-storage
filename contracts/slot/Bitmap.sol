@@ -3,86 +3,20 @@ pragma solidity ^0.8.0;
 contract Bitmap{
     uint256 public constant BITMAPSLOT = 1000000000000000;
 
-    //empty: return 1 ;no empry: return 0
-    function isEmptySlots(uint sslot,uint eslot)public view returns(uint256 succeed) {
-        uint tmp;
-        for (uint index = sslot ; index < eslot ;index ++){
-            tmp += 2**index;
-        }
-
-        assembly{
-            let _bitmap := sload(BITMAPSLOT)
-
-            // zero ,succeed =1
-            succeed := iszero(and(_bitmap,tmp))
-        }
-    }
-
     function storeInExpectSlots(bytes memory data,uint sslot,uint eslot) public {
         require(isEmptySlots(sslot,eslot)==1 ,"BITMAP: no empty slots");
-        uint len = data.length;
-        uint currentSlot =sslot;
-        for (uint i=0;i*32<len;i++) {
-            assembly{
-                data:= add(data,0x20)
-                sstore(currentSlot,mload(data))
-                currentSlot := add(currentSlot,1)
-            }   
-        }
-
-        require(currentSlot == eslot ,"BITMAP: currentSlot!=eslot");
-        // mark bitmap [ sslot , eslot )
-        uint tmp ;
-        for (uint ptr = sslot; ptr < eslot ;ptr++){
-            tmp += 2**ptr;
-        }
-        assembly{
-            let newBitmapVal := or(sload(BITMAPSLOT),tmp)
-            sstore(BITMAPSLOT,newBitmapVal)
-        }  
+        store(data,sslot,eslot);
     }
 
-    // under 8k
     function store(bytes memory data)public returns(uint sslot,uint eslot){
-        uint len = data.length;
-        (sslot,eslot) = getFreeSpaceByLen(len);
-        uint currentSlot =sslot;
-        for (uint i=0;i*32<len;i++) {
-            assembly{
-                data:= add(data,0x20)
-                sstore(currentSlot,mload(data))
-                currentSlot := add(currentSlot,1)
-            }   
-        }
-
-        require(currentSlot == eslot ,"BITMAP: currentSlot!=eslot");
-
-        // mark bitmap
-        uint tmp ;
-        for (uint ptr = sslot; ptr < eslot ;ptr++){
-            tmp += 2**ptr;
-        }
-        assembly{
-            let newBitmapVal := or(sload(BITMAPSLOT),tmp)
-            sstore(BITMAPSLOT,newBitmapVal)
-        }  
+        (sslot,eslot) = getFreeSpaceByLen(data.length);
+        store(data,sslot,eslot);
     }
 
-    
     function deleteSlot(uint sslot,uint eslot)public {
-        uint tmp;
-        for (uint index = sslot ; index < eslot ;index ++){
-            tmp += 2**index;
-        }
-
-        assembly{
-            let _bitmap := sload(BITMAPSLOT)
-            tmp := not(tmp)
-
-            _bitmap := and(tmp,_bitmap)
-            sstore(BITMAPSLOT,_bitmap)
-        }
+       unmarkBitmap(sslot, eslot);
     }
+
     function deleteSlotBylen(uint sslot,uint datalen)public {
         uint eslot = endSlot(sslot, datalen);
         deleteSlot(sslot,eslot);
@@ -161,6 +95,64 @@ contract Bitmap{
             }
         }
         return datas;
+    }
+    function store(bytes memory data ,uint sslot,uint eslot)internal {
+        uint len = data.length;
+        uint currentSlot =sslot;
+        for (uint i=0;i*32<len;i++) {
+            assembly{
+                data:= add(data,0x20)
+                sstore(currentSlot,mload(data))
+                currentSlot := add(currentSlot,1)
+            }   
+        }
+
+        require(currentSlot == eslot ,"BITMAP: currentSlot!=eslot");
+
+        // mark bitmap
+        markBitmap(sslot,eslot);
+    }
+
+
+    function markBitmap(uint sslot , uint eslot) internal {
+        uint tmp ;
+        for (uint ptr = sslot; ptr < eslot ;ptr++){
+            tmp += 2**ptr;
+        }
+        assembly{
+            let newBitmapVal := or(sload(BITMAPSLOT),tmp)
+            sstore(BITMAPSLOT,newBitmapVal)
+        }  
+    }
+    
+    function unmarkBitmap(uint sslot,uint eslot) internal{
+         uint tmp;
+        for (uint index = sslot ; index < eslot ;index ++){
+            tmp += 2**index;
+        }
+
+        assembly{
+            let _bitmap := sload(BITMAPSLOT)
+            tmp := not(tmp)
+
+            _bitmap := and(tmp,_bitmap)
+            sstore(BITMAPSLOT,_bitmap)
+        }
+    }
+
+    //empty: return 1 ;no empry: return 0
+    function isEmptySlots(uint sslot,uint eslot)internal view returns(uint256 succeed) {
+        uint tmp;
+        for (uint index = sslot ; index < eslot ;index ++){
+            tmp += 2**index;
+        }
+
+        assembly{
+            let _bitmap := sload(BITMAPSLOT)
+
+            // zero ,succeed =1
+            succeed := iszero(and(_bitmap,tmp))
+        }
     }
 
     function endSlot(uint sslot,uint datalen) internal pure returns(uint eslot){
