@@ -29,6 +29,11 @@ contract FileStore{
         delete(Files[name]);
     }
 
+    // 修改的数据不能超过原来的数据长度
+    // function modifyFile(string memory name , bytes memory newdata ) public {
+    //     _bitmap.endSlot(Files[name]., datalen);
+    // }
+
     function loadFile(string memory name) public view returns(bytes memory ){
         require(Files[name].length!=0 ,"FILESTORE: file no exist");
         return _bitmap.slotsDatas(Files[name].starSlot, Files[name].length);
