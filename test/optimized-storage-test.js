@@ -22,6 +22,15 @@ let oneStoreTest = async function(osmt,filesize,where){
         expect(_where).to.eq(where)
 }
 
+let removeTest = async function(osmt){
+    let key = "0x00000000000000000000000000000000000000000000000000000000000000aa"
+
+    // remove file
+    let tx2 = await osmt.remove(key)
+    await tx2.wait()
+    fsize = await osmt.filesize(key)
+    expect(fsize.toNumber()).to.eq(0)
+}
 
 describe("OptimizedStorageManagerTest Test", function () {
     let  OptimizedStorageManagerTest
@@ -44,10 +53,6 @@ describe("OptimizedStorageManagerTest Test", function () {
         await oneStoreTest(OptimizedStorageManagerTest,250,2)
     })
 
-    it("writefile :Over 192byte",async function(){
-        await oneStoreTest(OptimizedStorageManagerTest,250,2)
-    })
-
     it("rewrite file :first 192byte ; second 300byte ;third 100byte",async function(){
         await oneStoreTest(OptimizedStorageManagerTest,192,1)
 
@@ -56,5 +61,25 @@ describe("OptimizedStorageManagerTest Test", function () {
         await oneStoreTest(OptimizedStorageManagerTest,100,1)
     })
 
+    it("write and remove file: filesize 100byte",async function(){
+
+        await oneStoreTest(OptimizedStorageManagerTest,100,1)
+        await removeTest(OptimizedStorageManagerTest)
+    })
+
+    it("write and remove file: filesize 300byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,300,2)
+        await removeTest(OptimizedStorageManagerTest)
+    })
     
+    it("write and remove files multiple times: first filesize 100byte ; second filesize 300byte ; third filesize 1byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,100,1)
+        await removeTest(OptimizedStorageManagerTest)
+
+        await oneStoreTest(OptimizedStorageManagerTest,300,2)
+        await removeTest(OptimizedStorageManagerTest)
+
+        await oneStoreTest(OptimizedStorageManagerTest,1,1)
+        await removeTest(OptimizedStorageManagerTest)
+    })
 })

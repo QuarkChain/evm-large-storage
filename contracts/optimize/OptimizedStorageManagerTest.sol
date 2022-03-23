@@ -30,4 +30,8 @@ contract OptimizedStorageManagerTest is OptimizedStorageManager{
     function whereStore(bytes32 key ) public view returns(uint){
         return _whereStore(key);
     }
+
+    function remove(bytes32 key) public {
+        _remove(key);
+    }
 }
