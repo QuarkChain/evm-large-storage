@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 // 存储方法
 library SlotHelper{
-    uint constant ADDRBITLEN = 160;
+    uint internal constant ADDRBITLEN = 160;
 
     function putRaw(bytes32 key , bytes memory data)
         internal 
