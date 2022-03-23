@@ -3,9 +3,28 @@ const { expect } = require("chai");
 const { Contract,BigNumber } = require("ethers");
 
 
-describe("SlotHelper Library Test", function () {
+let oneStoreTest = async function(osmt,filesize,where){
+    let key = "0x00000000000000000000000000000000000000000000000000000000000000aa"
+        const data = [];
+        for (let i = 0; i < filesize; i++) {
+             data.push(1);
+        }
+
+        let tx1 = await osmt.put(key,data)
+        await tx1.wait()
+        let resData = await osmt.get(key)
+
+        let fsize = await osmt.filesize(key)
+        let _where = await osmt.whereStore(key)
+
+        expect(BigNumber.from(data).toHexString()).to.eq(resData)
+        expect(fsize.toNumber()).to.eq(filesize)
+        expect(_where).to.eq(where)
+}
+
+
+describe("OptimizedStorageManagerTest Test", function () {
     let  OptimizedStorageManagerTest
-    const SHITLEFT160BIT = BigNumber.from(1).mul(16).pow(40)
 
     beforeEach(async()=>{
         let factory = await ethers.getContractFactory("OptimizedStorageManagerTest")
@@ -13,65 +32,29 @@ describe("SlotHelper Library Test", function () {
         await OptimizedStorageManagerTest.deployed()
     })
 
-    // it("OptimizedStorageManagerTest/put & get", async function () {
-    //     const len = 20;
-    //     let res = await SlotHelperTest.encodeLen(len)
-    //     let expectRes = BigNumber.from(len).mul(SHITLEFT160BIT).toHexString()
-
-    //     expect(BigNumber.from(res).eq(expectRes)).to.eq(true)
-    //     // console.log(BigNumber.from(len).mul(SHITLEFT160BIT).toHexString())
-    //     // console.log(res);
-
-    //     let resLen = await SlotHelperTest.decodeLen(res)
-    //     expect(resLen.eq(BigNumber.from(len))).to.eq(true)
-    // })
-
-    it("OptimizedStorageManagerTest/ put & get :min 192Byte",async function(){
-        let key = "0x00000000000000000000000000000000000000000000000000000000000000aa"
-        let data = "0xada5013122d395ba3c54772283fb069b10426056ef8ca54750cb9bb552a59e7dffff"
-        let datalen = 34
-
-        let tx1 = await OptimizedStorageManagerTest.put(key,data)
-        await tx1.wait()
-        let resData = await OptimizedStorageManagerTest.get(key)
-
-        // let resLen = await OptimizedStorageManagerTest.getLen(key)
-
-        expect(data).to.eq(resData)
-        // expect(resLen.toNumber()).to.eq(datalen)
+    it("writefile :min 192Byte",async function(){
+       await oneStoreTest(OptimizedStorageManagerTest,100,1)
     })
 
-    it("OptimizedStorageManagerTest/ put & get :equal 192Byte",async function(){
-        let key = "0x00000000000000000000000000000000000000000000000000000000000000aa"
-        let data = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        let datalen = 34
-
-        let tx1 = await OptimizedStorageManagerTest.put(key,data)
-        await tx1.wait()
-        let resData = await OptimizedStorageManagerTest.get(key)
-
-        // let resLen = await OptimizedStorageManagerTest.getLen(key)
-
-        expect(data).to.eq(resData)
-        // expect(resLen.toNumber()).to.eq(datalen)
+    it("writefile :equal 192Byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,192,1)
     })
 
-    it("OptimizedStorageManagerTest/ put & get :Over 192byte",async function(){
-        let key = "0x00000000000000000000000000000000000000000000000000000000000000aa"
-        let data = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        // let datalen = 34
-
-        let tx1 = await OptimizedStorageManagerTest.put(key,data)
-        await tx1.wait()
-        let resData = await OptimizedStorageManagerTest.get(key)
-
-        // let resLen = await OptimizedStorageManagerTest.getLen(key)
-
-        expect(data).to.eq(resData)
-        // expect(resLen.toNumber()).to.eq(datalen)
+    it("writefile :Over 192byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,250,2)
     })
 
+    it("writefile :Over 192byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,250,2)
+    })
 
+    it("rewrite file :first 192byte ; second 300byte ;third 100byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,192,1)
+
+        await oneStoreTest(OptimizedStorageManagerTest,300,2)
+
+        await oneStoreTest(OptimizedStorageManagerTest,100,1)
+    })
 
     
 })

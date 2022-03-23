@@ -62,7 +62,6 @@ contract OptimizedStorageManager {
         bytes32 metadata = keyToContract[key];
         address addr = SlotHelper.bytes32ToAddr_1(metadata);
 
-        // 判断从哪里获取数据
         if (SlotHelper.isInSlot(metadata)){
             bytes memory res  = SlotHelper.getRaw(key, SlotHelper.decodeLen(metadata));
             return (res,true);
@@ -72,6 +71,40 @@ contract OptimizedStorageManager {
 
     }
 
+    // 文件大小
+    function _filesize(bytes32 key) internal view returns(uint){
+        bytes32 metadata = keyToContract[key];
+        address addr = SlotHelper.bytes32ToAddr_1(metadata);
+
+        if (metadata == bytes32(0)){
+            return 0;
+        }else if (SlotHelper.isInSlot(metadata)){
+            return SlotHelper.decodeLen(metadata);
+        }else{
+            (uint size, )= StorageHelper.sizeRaw(addr);
+            return size;
+        }
+    }
+
+    // 文件存储在哪里
+    function _whereStore(bytes32 key) internal view returns(uint){
+        bytes32 metadata = keyToContract[key];
+        address addr = SlotHelper.bytes32ToAddr_1(metadata);
+
+        if (metadata == bytes32(0)){
+            return 0;
+        }else if (SlotHelper.isInSlot(metadata)){
+            return 1;
+        }else{
+            (,bool found)= StorageHelper.sizeRaw(addr);
+            if (found){
+                return 2;
+            }else{
+                // happen error
+                return uint(int(-1));
+            }
+        }
+    }
 
     function _remove(bytes32 key) internal returns (bool) {
         bytes32 metadata = keyToContract[key];
