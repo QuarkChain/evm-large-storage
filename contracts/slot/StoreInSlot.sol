@@ -26,10 +26,8 @@ contract StoreInSlot {
 }
 
 /*
-前多少位放位图
-每32位可以放8k数据的位图
-
-
+    前多少位放位图
+    每32位可以放8k数据的位图
 */
 contract StoreInSlotByDynamicArray{
     bytes32[] public datas;
@@ -45,7 +43,6 @@ contract StoreInSlotByDynamicArray{
             datas.push(v);
         }
     }
-
     function storeDataOverwrite(bytes memory data) public  { 
         bytes32 v;
         uint len = data.length;
