@@ -9,6 +9,7 @@ library SlotHelper{
         internal 
         returns(bytes32 mdata)
     {
+        // warn: if data as ptr to move,your should keep it by another ptr
         uint len = data.length;
         for (uint index = 0 ; index * 32 < len ; index ++){
             assembly{
@@ -55,9 +56,9 @@ library SlotHelper{
         }
 
         if (exist == 1){
-            succeed = true ;
+            succeed = false ;
         }else{
-            succeed = false;
+            succeed = true;
         }
     }
 
