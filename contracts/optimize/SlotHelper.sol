@@ -9,12 +9,12 @@ library SlotHelper{
         internal 
         returns(bytes32 mdata)
     {
-        for (uint index = 0 ; index * 32 < data.length ; index ++){
-            bytes32 keydata = bytes32(0);
+        uint len = data.length;
+        for (uint index = 0 ; index * 32 < len ; index ++){
             assembly{
                 data := add(data,0x20)
-                mstore(keydata,add(key,index))
-                let slot := keccak256(keydata,0x20)
+                mstore(0,add(key,index))
+                let slot := keccak256(0,0x20)
                 sstore(slot,mload(data))
             }
         }
@@ -65,6 +65,29 @@ library SlotHelper{
          assembly{
             res := shr(ADDRBITLEN,mdata)
         }
+    }
+
+    function addrToBytes32(address addr)internal pure returns(bytes32){
+        assembly{
+            mstore(0,addr)
+            return(0,0x20)
+        }
+    }
+
+    function addrToBytes32_1(address addr)internal pure returns(bytes32){
+        return bytes32(uint256(uint160(addr)));
+
+    }
+
+    function bytes32ToAddr(bytes32 bt) internal pure returns(address){
+        assembly{
+            mstore(0,bt)
+            return(0,0x20)
+        }
+    }
+
+    function bytes32ToAddr_1(bytes32 bt) internal pure returns(address){
+        return address(uint160(uint256(bt)));
     }
 
 }
