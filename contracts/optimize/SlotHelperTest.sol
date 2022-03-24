@@ -6,13 +6,25 @@ import "./SlotHelper.sol";
 contract SlotHelperTest{
     mapping(bytes32=>bytes32) public metadatas;
     function put(bytes32 key, bytes memory data) public {
-        metadatas[key] = SlotHelper.encodeLen(data.length);
-        SlotHelper.putRaw(key, data);
+        metadatas[key] = SlotHelper.putRaw(key, data);
     }
 
     function get(bytes32 key) public view returns(bytes memory res){
-        uint datalen = SlotHelper.decodeLen(metadatas[key]);
-        res = SlotHelper.getRaw(key,datalen);
+        // uint datalen = SlotHelper.decodeLen(metadatas[key]);
+        bytes32 md = metadatas[key];
+        res = SlotHelper.getRaw1(key,md);
+    }
+
+    function encodeMetadata(bytes memory data)public pure returns(bytes32){
+        return SlotHelper.encodeMetadata(data);
+    }
+
+    function decodeMetadata(bytes32 mdata) public pure returns(uint,bytes32){
+        return SlotHelper.decodeMetadata(mdata);
+    }
+
+    function decodeMetadata1(bytes32 mdata) public pure returns(uint,bytes memory){
+        return SlotHelper.decodeMetadata1(mdata);
     }
 
     function encodeLen( uint datalen )public pure returns(bytes32){
