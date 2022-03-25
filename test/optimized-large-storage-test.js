@@ -135,7 +135,7 @@ describe("OptimizedFlatDirectory Test", function () {
         await readTest(OPFlatDirectory,"0x02",1000,1,10,2,100,3)
     })
 
-    it("write Chunk no append will failed",async function(){
+    it("write Chunk with NO_APPEND will revert",async function(){
         await writeChunkTest(OPFlatDirectory,"0x01",0,1000,1)
         await expect( writeChunkTest(OPFlatDirectory,"0x01",2,500,4)).to.be.reverted
     })
