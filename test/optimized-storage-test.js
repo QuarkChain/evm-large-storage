@@ -41,20 +41,20 @@ describe("OptimizedStorageManagerTest Test", function () {
         await OptimizedStorageManagerTest.deployed()
     })
 
-    it("writefile :min 192Byte",async function(){
+    it("writefile :min 220Byte",async function(){
        await oneStoreTest(OptimizedStorageManagerTest,100,1)
     })
 
-    it("writefile :equal 192Byte",async function(){
-        await oneStoreTest(OptimizedStorageManagerTest,192,1)
+    it("writefile :equal 220Byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,220,1)
     })
 
-    it("writefile :Over 192byte",async function(){
+    it("writefile :Over 220Byte",async function(){
         await oneStoreTest(OptimizedStorageManagerTest,250,2)
     })
 
-    it("rewrite file :first 192byte ; second 300byte ;third 100byte",async function(){
-        await oneStoreTest(OptimizedStorageManagerTest,192,1)
+    it("rewrite file :first 220Byte ; second 300byte ;third 100byte",async function(){
+        await oneStoreTest(OptimizedStorageManagerTest,220,1)
 
         await oneStoreTest(OptimizedStorageManagerTest,300,2)
 
