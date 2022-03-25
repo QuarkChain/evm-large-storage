@@ -18,19 +18,21 @@ contract OptimizedLargeStorageManager{
 
         bytes32 metadata = keyToContract[key][chunkId];
         address addr = SlotHelper.bytes32ToAddr(metadata);
+        if (metadata == bytes32(0)){
+             require(
+                    chunkId == 0 || keyToContract[key][chunkId - 1] != bytes32(0x0),
+                    "must replace or append"
+            );
+        }
 
         if (!SlotHelper.isInSlot(metadata)){
             if (addr != address(0x0)) {
                 // remove the KV first if it exists
                 StorageSlotSelfDestructable(addr).destruct();
-            } else {
-                require(
-                    chunkId == 0 || keyToContract[key][chunkId - 1] != bytes32(0x0),
-                    "must replace or append"
-                );
-            }
+            } 
         }
-
+        
+        // store data and rewrite metadata
         if (data.length > SLOTLIMIT){
             keyToContract[key][chunkId] = SlotHelper.addrToBytes32(StorageHelper.putRaw(data, value));
         }else{
@@ -135,6 +137,30 @@ contract OptimizedLargeStorageManager{
         }
 
         return (data, true);
+    }
+
+        // Returns # of chunks deleted
+    function _remove(bytes32 key) internal returns (uint256) {
+        uint256 chunkId = 0;
+
+        while (true) {
+            bytes32 metadata = keyToContract[key][chunkId];
+            address addr = SlotHelper.bytes32ToAddr(metadata);
+            if (metadata == bytes32(0x0)) {
+                break;
+            }
+
+            if (!SlotHelper.isInSlot(metadata)){
+                // remove new contract
+                StorageSlotSelfDestructable(addr).destruct();
+            }
+
+            keyToContract[key][chunkId] = bytes32(0x0);
+
+            chunkId++;
+        }
+
+        return chunkId;
     }
 
     function _removeChunk(bytes32 key, uint256 chunkId)
