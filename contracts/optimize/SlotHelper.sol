@@ -22,7 +22,7 @@ library SlotHelper{
                     mstore(0,add(key,index))
                     let slot := keccak256(0,0x20)
 
-                    //跟下一个字(memory)的数据进行拼接
+                    //Restructured data
                     let value1 := shl( LENOFFSET , mload(data))
                     let value2 := shr( RIGHTSLOTDATASHIFT , mload(add(data,0x20)))
                     value1 := or(value1,value2)
@@ -38,11 +38,10 @@ library SlotHelper{
             let len := mload(data)
             let value := mload(add(data,0x20))
             
-            // just in stack 
+            // operator in stack 
             len := shl(LENOFFSET,len)
             value := shr(RIGHTSLOTDATASHIFT,value) 
 
-            // just in 
             medata := or(len,value)
         }
     }
@@ -77,12 +76,12 @@ library SlotHelper{
                     let slot := keccak256(0,0x20)
                     let cdata := sload(slot)
                     
-                    // 先拿4个字节跟前28字节数据拼
+                    // Or the last 4 bytes of the current word with the first 28 bytes of the previous word
                     let value1 := shr(LENOFFSET,cdata)
                     value1 := or(mload(sub(ptr,0x20)),value1)
                     mstore(sub(ptr,0x20),value1)
                     
-                    // 将剩下的28字节数据往前移动 4*8 bit位
+                    // Move the last 28 bytes of the current word forward by 32 bits
                     let value2 := shl(RIGHTSLOTDATASHIFT , cdata)
                     mstore(ptr,value2)
 
@@ -114,12 +113,12 @@ library SlotHelper{
                     let slot := keccak256(0,0x20)
                     let cdata := sload(slot)
                     
-                    // 先拿4个字节跟前28字节数据拼
+                    // Or the last 4 bytes of the current word with the first 28 bytes of the previous word
                     let value1 := shr(LENOFFSET,cdata)
                     value1 := or(mload(sub(ptr,0x20)),value1)
                     mstore(sub(ptr,0x20),value1)
                     
-                    // 将剩下的28字节数据往前移动 4*8 bit位
+                    // Move the last 28 bytes of the current word forward by 32 bits
                     let value2 := shl(RIGHTSLOTDATASHIFT , cdata)
                     mstore(ptr,value2)
 
