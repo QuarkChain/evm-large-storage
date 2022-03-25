@@ -72,7 +72,6 @@ contract OptimizedStorageManager {
 
     }
 
-    // 文件大小
     function _filesize(bytes32 key) internal view returns(uint){
         bytes32 metadata = keyToContract[key];
         address addr = SlotHelper.bytes32ToAddr(metadata);
@@ -87,7 +86,6 @@ contract OptimizedStorageManager {
         }
     }
 
-    // 文件存储在哪里
     function _whereStore(bytes32 key) internal view returns(uint){
         bytes32 metadata = keyToContract[key];
         address addr = SlotHelper.bytes32ToAddr(metadata);
