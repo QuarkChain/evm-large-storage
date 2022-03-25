@@ -14,10 +14,8 @@ library SlotHelper{
     {
         // warn: if data as ptr to move,your should keep "data.length" by another ptr
         uint len = data.length;
-        // mdata = encodeLen(len);
         mdata = encodeMetadata(data);
         if (len > FIRSTSLOTDATASIZE){
-            // begin index = 0x20 + FIRSTSLOTDATASIZE
             for (uint index = 0 ; index * 32 < len - FIRSTSLOTDATASIZE ; index ++){
                 assembly{
                     data := add(data,0x20)
@@ -134,17 +132,8 @@ library SlotHelper{
     }
 
     function isInSlot(bytes32 mdata) internal pure returns(bool succeed){
-        uint exist;
-        assembly{
-            let res := shr(LENOFFSET,mdata)
-            exist := iszero(res)
-        }
-
-        if (exist == 1){
-            succeed = false ;
-        }else{
-            succeed = true;
-        }
+        uint exist = uint256(mdata) >> LENOFFSET;
+        return exist > 0;
     }
 
     function encodeLen( uint datalen ) internal pure returns(bytes32 res){

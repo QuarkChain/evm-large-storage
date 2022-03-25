@@ -14,7 +14,7 @@ contract OptimizedLargeStorageManager{
         uint256 chunkId,
         bytes memory data,
         uint256 value
-    ) public {
+    ) internal {
 
         bytes32 metadata = keyToContract[key][chunkId];
         address addr = SlotHelper.bytes32ToAddr(metadata);
@@ -41,7 +41,7 @@ contract OptimizedLargeStorageManager{
     }
 
     function _getChunk(bytes32 key, uint256 chunkId)
-        public
+        internal
         view
         returns (bytes memory, bool)
     {
@@ -57,7 +57,7 @@ contract OptimizedLargeStorageManager{
     }
 
     function _chunkSize(bytes32 key, uint256 chunkId)
-        public
+        internal
         view
         returns (uint256, bool)
     {
@@ -74,7 +74,7 @@ contract OptimizedLargeStorageManager{
         }
     }
 
-    function _countChunks(bytes32 key) public view returns (uint256) {
+    function _countChunks(bytes32 key) internal view returns (uint256) {
         uint256 chunkId = 0;
 
         while (true) {
@@ -90,7 +90,7 @@ contract OptimizedLargeStorageManager{
     }
 
      // Returns (size, # of chunks).
-    function _size(bytes32 key) public view returns (uint256, uint256) {
+    function _size(bytes32 key) internal view returns (uint256, uint256) {
         uint256 size = 0;
         uint256 chunkId = 0;
 
@@ -107,7 +107,7 @@ contract OptimizedLargeStorageManager{
         return (size, chunkId);
     }
 
-    function _get(bytes32 key) public view returns (bytes memory, bool) {
+    function _get(bytes32 key) internal view returns (bytes memory, bool) {
         (uint256 size, uint256 chunkNum) = _size(key);
         if (chunkNum == 0) {
             return (new bytes(0), false);
@@ -164,7 +164,7 @@ contract OptimizedLargeStorageManager{
     }
 
     function _removeChunk(bytes32 key, uint256 chunkId)
-        public
+        internal
         returns (bool)
     {
         bytes32 metadata = keyToContract[key][chunkId];
