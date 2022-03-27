@@ -15,7 +15,7 @@ contract FlatDirectoryFactory {
         return address(fd);
     }
 
-    function createOptimize() public returns (address) {
+    function createOptimized() public returns (address) {
         OptimizedFlatDirectory fd = new OptimizedFlatDirectory();
         fd.changeOwner(msg.sender);
         emit FlatDirectoryCreated(address(fd));
