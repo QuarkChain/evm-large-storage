@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 // 存储方法
 library SlotHelper{
-    uint internal constant RIGHTSLOTDATASHIFT = 32;
-    uint internal constant LENOFFSET = 224;
-    uint internal constant FIRSTSLOTDATASIZE = 28;
+    uint internal constant SLOTDATA_RIGHT_SHIFT = 32;
+    uint internal constant LEN_OFFSET = 224;
+    uint internal constant FIRST_SLOT_DATASIZE = 28;
     
 
     function putRaw(bytes32 key , bytes memory data)
@@ -15,16 +15,16 @@ library SlotHelper{
         // warn: if data as ptr to move,your should keep "data.length" by another ptr
         uint len = data.length;
         mdata = encodeMetadata(data);
-        if (len > FIRSTSLOTDATASIZE){
-            for (uint index = 0 ; index * 32 < len - FIRSTSLOTDATASIZE ; index ++){
+        if (len > FIRST_SLOT_DATASIZE){
+            for (uint index = 0 ; index * 32 < len - FIRST_SLOT_DATASIZE ; index ++){
                 assembly{
                     data := add(data,0x20)
                     mstore(0,add(key,index))
                     let slot := keccak256(0,0x20)
 
                     //Restructured data
-                    let value1 := shl( LENOFFSET , mload(data))
-                    let value2 := shr( RIGHTSLOTDATASHIFT , mload(add(data,0x20)))
+                    let value1 := shl( LEN_OFFSET , mload(data))
+                    let value2 := shr( SLOTDATA_RIGHT_SHIFT , mload(add(data,0x20)))
                     value1 := or(value1,value2)
 
                     sstore(slot,value1)
@@ -39,8 +39,8 @@ library SlotHelper{
             let value := mload(add(data,0x20))
             
             // operator in stack 
-            len := shl(LENOFFSET,len)
-            value := shr(RIGHTSLOTDATASHIFT,value) 
+            len := shl(LEN_OFFSET,len)
+            value := shr(SLOTDATA_RIGHT_SHIFT,value) 
 
             medata := or(len,value)
         }
@@ -48,12 +48,12 @@ library SlotHelper{
 
     function decodeMetadata(bytes32 mdata) internal pure returns(uint len ,bytes32 data){
         len = decodeLen(mdata);
-        data =  mdata << RIGHTSLOTDATASHIFT;
+        data =  mdata << SLOTDATA_RIGHT_SHIFT;
     }
 
     function decodeMetadata1(bytes32 mdata) internal pure returns(uint len ,bytes memory data){
         len = decodeLen(mdata);
-        mdata =  mdata << RIGHTSLOTDATASHIFT;
+        mdata =  mdata << SLOTDATA_RIGHT_SHIFT;
         data = new bytes(len);
         assembly{
             mstore(add(data,0x20),mdata)
@@ -63,13 +63,13 @@ library SlotHelper{
     function getRaw(bytes32 key,bytes32 mdata) internal view returns(bytes memory res){
         uint datalen ;
         (datalen, res)= decodeMetadata1(mdata);
-        if (datalen > FIRSTSLOTDATASIZE){
+        if (datalen > FIRST_SLOT_DATASIZE){
             uint ptr = 0;
             assembly{
                 ptr := add(res,0x40) 
             }
 
-            for (uint index = 0 ; index * 32 < datalen - FIRSTSLOTDATASIZE ; index ++){
+            for (uint index = 0 ; index * 32 < datalen - FIRST_SLOT_DATASIZE ; index ++){
                 assembly{
                     
                     mstore(0,add(key,index))
@@ -77,12 +77,12 @@ library SlotHelper{
                     let cdata := sload(slot)
                     
                     // Or the last 4 bytes of the current word with the first 28 bytes of the previous word
-                    let value1 := shr(LENOFFSET,cdata)
+                    let value1 := shr(LEN_OFFSET,cdata)
                     value1 := or(mload(sub(ptr,0x20)),value1)
                     mstore(sub(ptr,0x20),value1)
                     
                     // Move the last 28 bytes of the current word forward by 32 bits
-                    let value2 := shl(RIGHTSLOTDATASHIFT , cdata)
+                    let value2 := shl(SLOTDATA_RIGHT_SHIFT , cdata)
                     mstore(ptr,value2)
 
                     ptr := add(ptr,0x20)
@@ -105,21 +105,21 @@ library SlotHelper{
             ptr := add(ptr,0x20) 
         }
 
-        if (datalen > FIRSTSLOTDATASIZE){
+        if (datalen > FIRST_SLOT_DATASIZE){
 
-            for (uint index = 0 ; index * 32 < datalen - FIRSTSLOTDATASIZE ; index ++){
+            for (uint index = 0 ; index * 32 < datalen - FIRST_SLOT_DATASIZE ; index ++){
                 assembly{
                     mstore(0,add(key,index))
                     let slot := keccak256(0,0x20)
                     let cdata := sload(slot)
                     
                     // Or the last 4 bytes of the current word with the first 28 bytes of the previous word
-                    let value1 := shr(LENOFFSET,cdata)
+                    let value1 := shr(LEN_OFFSET,cdata)
                     value1 := or(mload(sub(ptr,0x20)),value1)
                     mstore(sub(ptr,0x20),value1)
                     
                     // Move the last 28 bytes of the current word forward by 32 bits
-                    let value2 := shl(RIGHTSLOTDATASHIFT , cdata)
+                    let value2 := shl(SLOTDATA_RIGHT_SHIFT , cdata)
                     mstore(ptr,value2)
 
                     ptr := add(ptr,0x20)
@@ -131,16 +131,16 @@ library SlotHelper{
     }
 
     function isInSlot(bytes32 mdata) internal pure returns(bool succeed){
-        uint exist = uint256(mdata) >> LENOFFSET;
+        uint exist = uint256(mdata) >> LEN_OFFSET;
         return exist > 0;
     }
 
     function encodeLen( uint datalen ) internal pure returns(bytes32 res){
-        res = bytes32(datalen  << LENOFFSET); 
+        res = bytes32(datalen  << LEN_OFFSET); 
     }
 
     function decodeLen(bytes32 mdata) internal pure returns(uint res){
-        res = uint(mdata) >> LENOFFSET;
+        res = uint(mdata) >> LEN_OFFSET;
     }
 
     function addrToBytes32(address addr)internal pure returns(bytes32){
