@@ -136,15 +136,11 @@ library SlotHelper{
     }
 
     function encodeLen( uint datalen ) internal pure returns(bytes32 res){
-        assembly{
-            res := shl(LENOFFSET,datalen)
-        }
+        res = bytes32(datalen  << LENOFFSET); 
     }
 
     function decodeLen(bytes32 mdata) internal pure returns(uint res){
-         assembly{
-            res := shr(LENOFFSET,mdata)
-        }
+        res = uint(mdata) >> LENOFFSET;
     }
 
     function addrToBytes32(address addr)internal pure returns(bytes32){
