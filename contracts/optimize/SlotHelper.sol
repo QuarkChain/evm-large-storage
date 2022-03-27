@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 // 存储方法
 library SlotHelper{
-    uint internal constant SLOTDATA_RIGHT_SHIFT = 32;
-    uint internal constant LEN_OFFSET = 224;
-    uint internal constant FIRST_SLOT_DATASIZE = 28;
+    uint256 internal constant SLOTDATA_RIGHT_SHIFT = 32;
+    uint256 internal constant LEN_OFFSET = 224;
+    uint256 internal constant FIRST_SLOT_DATASIZE = 28;
     
 
     function putRaw(bytes32 key , bytes memory data)
