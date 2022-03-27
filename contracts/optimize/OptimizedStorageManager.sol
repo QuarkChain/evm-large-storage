@@ -6,7 +6,7 @@ import "../StorageHelper.sol";
 import "../StorageSlotSelfDestructable.sol";
 
 contract OptimizedStorageManager {
-    uint internal constant SLOTLIMIT = 220; 
+    uint256 internal constant SLOT_LIMIT = 220; 
     mapping(bytes32 => bytes32) public keyToContract;
     
     function _put(
@@ -26,7 +26,7 @@ contract OptimizedStorageManager {
             }
         }
     
-        if (data.length > SLOTLIMIT){
+        if (data.length > SLOT_LIMIT){
             // store in new contract
             keyToContract[key] = SlotHelper.addrToBytes32(StorageHelper.putRaw(data, value));
         }else{
@@ -49,7 +49,7 @@ contract OptimizedStorageManager {
             StorageSlotSelfDestructable(addr).destruct();
         }
 
-        if (data.length > SLOTLIMIT){
+        if (data.length > SLOT_LIMIT){
             // store in new contract
             keyToContract[key] = SlotHelper.addrToBytes32(StorageHelper.putRaw2(key , data, value));
         }else{
