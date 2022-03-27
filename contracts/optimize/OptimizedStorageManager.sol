@@ -19,7 +19,7 @@ contract OptimizedStorageManager {
 
         if (!SlotHelper.isInSlot(metadata)){
             address addr = SlotHelper.bytes32ToAddr(metadata);
-            // Notify :No need to delete metadata here, because it will be rewritten later
+            // Notify: No need to delete metadata here, because it will be rewritten later
             if (addr != address(0x0)) {
                 // remove the KV first if it exists
                 StorageSlotSelfDestructable(addr).destruct();
