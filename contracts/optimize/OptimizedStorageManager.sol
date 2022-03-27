@@ -6,6 +6,11 @@ import "../StorageHelper.sol";
 import "../StorageSlotSelfDestructable.sol";
 
 contract OptimizedStorageManager {
+    uint8 constant internal NO_EXIST = 0;
+    uint8 constant internal IN_SLOT = 1;
+    uint8 constant internal IN_CONTRACT_CODE = 2;
+    uint8 constant internal WHERE_STORE_ERROR = 255;
+
     uint256 internal constant SLOT_LIMIT = 220; 
     mapping(bytes32 => bytes32) public keyToContract;
     
@@ -91,16 +96,16 @@ contract OptimizedStorageManager {
         address addr = SlotHelper.bytes32ToAddr(metadata);
 
         if (metadata == bytes32(0)){
-            return 0;
+            return NO_EXIST;
         }else if (SlotHelper.isInSlot(metadata)){
-            return 1;
+            return IN_SLOT;
         }else{
             (,bool found)= StorageHelper.sizeRaw(addr);
             if (found){
-                return 2;
+                return IN_CONTRACT_CODE;
             }else{
                 // happen error
-                return uint(int(-1));
+                return WHERE_STORE_ERROR;
             }
         }
     }
