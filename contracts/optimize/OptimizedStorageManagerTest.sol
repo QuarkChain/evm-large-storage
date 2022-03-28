@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./OptimizedStorageManager.sol";
 
-contract OptimizedStorageManagerTest is OptimizedStorageManager{
+contract OptimizedStorageManagerTest is OptimizedStorageManager {
     function get(bytes32 key) public view returns (bytes memory) {
         (bytes memory data, ) = _get(key);
         return data;
@@ -23,11 +23,11 @@ contract OptimizedStorageManagerTest is OptimizedStorageManager{
         _put2(key, data, 0);
     }
 
-    function filesize(bytes32 key ) public view returns(uint){
+    function filesize(bytes32 key) public view returns (uint256) {
         return _filesize(key);
     }
 
-    function whereStore(bytes32 key ) public view returns(uint){
+    function whereStore(bytes32 key) public view returns (uint256) {
         return _whereStore(key);
     }
 
