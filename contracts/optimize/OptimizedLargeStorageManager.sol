@@ -4,10 +4,9 @@ pragma solidity ^0.8.0;
 import "./SlotHelper.sol";
 import "../StorageHelper.sol";
 import "../StorageSlotSelfDestructable.sol";
-import "../LargeStorageManager.sol";
 
 contract OptimizedLargeStorageManager {
-    uint internal constant SLOTLIMIT = 220; 
+    uint internal constant SLOT_LIMIT = 220; 
     mapping(bytes32 => mapping(uint256 => bytes32)) public keyToContract;
     mapping(bytes32=>mapping(uint256=>mapping(uint256=>bytes32))) public keyToSlot;
 
@@ -35,7 +34,7 @@ contract OptimizedLargeStorageManager {
         }
         
         // store data and rewrite metadata
-        if (data.length > SLOTLIMIT){
+        if (data.length > SLOT_LIMIT){
             keyToContract[key][chunkId] = SlotHelper.addrToBytes32(StorageHelper.putRaw(data, value));
         }else{
             keyToContract[key][chunkId] = SlotHelper.putRaw(keyToSlot[key][chunkId],data);
