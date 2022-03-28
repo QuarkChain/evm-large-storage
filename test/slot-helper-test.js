@@ -72,6 +72,23 @@ describe("SlotHelper Library Test", function () {
         expect(resLen.toNumber()).to.eq(datalen)
     })
 
+    it("SlotHelper/ put & get over 28byte",async function(){
+        let key = "0x00000000000000000000000000000000000000000000000000000000000000aa"
+        let data = "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        let datalen = 64
+
+        let tx1 = await SlotHelperTest.put(key,data)
+        await tx1.wait()
+        // "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        let resData = await SlotHelperTest.get(key)
+        // console.log(resData)
+        let resLen = await SlotHelperTest.getLen(key)
+
+        
+        expect(data).to.eq(resData)
+        expect(resLen.toNumber()).to.eq(datalen)
+    })
+
 
 
     
