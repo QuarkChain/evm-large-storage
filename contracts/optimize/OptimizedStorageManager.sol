@@ -13,6 +13,7 @@ contract OptimizedStorageManager {
 
     uint256 internal constant SLOT_LIMIT = 220; 
     mapping(bytes32 => bytes32) public keyToContract;
+    mapping(bytes32=>mapping(uint256=>bytes32)) public keyToSlot;
     
     function _put(
         bytes32 key,
@@ -36,8 +37,7 @@ contract OptimizedStorageManager {
             keyToContract[key] = SlotHelper.addrToBytes32(StorageHelper.putRaw(data, value));
         }else{
             // store in slot
-            keyToContract[key] = SlotHelper.putRaw(key,data);
-            
+            keyToContract[key] = SlotHelper.putRaw(keyToSlot[key],data);
         }
         
     }
@@ -59,7 +59,7 @@ contract OptimizedStorageManager {
             keyToContract[key] = SlotHelper.addrToBytes32(StorageHelper.putRaw2(key , data, value));
         }else{
             // store in slot
-            keyToContract[key] = SlotHelper.putRaw(key,data);
+            keyToContract[key] = SlotHelper.putRaw(keyToSlot[key],data);
         }
 
     }
@@ -69,7 +69,7 @@ contract OptimizedStorageManager {
         address addr = SlotHelper.bytes32ToAddr(metadata);
 
         if (SlotHelper.isInSlot(metadata)){
-            bytes memory res  = SlotHelper.getRaw(key, metadata);
+            bytes memory res  = SlotHelper.getRaw(keyToSlot[key], metadata);
             return (res,true);
         }else{
             return StorageHelper.getRaw(addr);
