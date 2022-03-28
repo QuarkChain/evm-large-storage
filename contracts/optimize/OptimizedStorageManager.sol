@@ -6,24 +6,23 @@ import "../StorageHelper.sol";
 import "../StorageSlotSelfDestructable.sol";
 
 contract OptimizedStorageManager {
-    uint8 constant internal NO_EXIST = 0;
-    uint8 constant internal IN_SLOT = 1;
-    uint8 constant internal IN_CONTRACT_CODE = 2;
-    uint8 constant internal WHERE_STORE_ERROR = 255;
+    uint8 internal constant NO_EXIST = 0;
+    uint8 internal constant IN_SLOT = 1;
+    uint8 internal constant IN_CONTRACT_CODE = 2;
+    uint8 internal constant WHERE_STORE_ERROR = 255;
 
-    uint256 internal constant SLOT_LIMIT = 220; 
+    uint256 internal constant SLOT_LIMIT = 220;
     mapping(bytes32 => bytes32) public keyToContract;
-    mapping(bytes32=>mapping(uint256=>bytes32)) public keyToSlot;
-    
+    mapping(bytes32 => mapping(uint256 => bytes32)) public keyToSlot;
+
     function _put(
         bytes32 key,
         bytes memory data,
         uint256 value
     ) internal {
-
         bytes32 metadata = keyToContract[key];
 
-        if (!SlotHelper.isInSlot(metadata)){
+        if (!SlotHelper.isInSlot(metadata)) {
             address addr = SlotHelper.bytes32ToAddr(metadata);
             // Notify: No need to delete metadata here, because it will be rewritten later
             if (addr != address(0x0)) {
@@ -31,15 +30,16 @@ contract OptimizedStorageManager {
                 StorageSlotSelfDestructable(addr).destruct();
             }
         }
-    
-        if (data.length > SLOT_LIMIT){
+
+        if (data.length > SLOT_LIMIT) {
             // store in new contract
-            keyToContract[key] = SlotHelper.addrToBytes32(StorageHelper.putRaw(data, value));
-        }else{
+            keyToContract[key] = SlotHelper.addrToBytes32(
+                StorageHelper.putRaw(data, value)
+            );
+        } else {
             // store in slot
-            keyToContract[key] = SlotHelper.putRaw(keyToSlot[key],data);
+            keyToContract[key] = SlotHelper.putRaw(keyToSlot[key], data);
         }
-        
     }
 
     function _put2(
@@ -54,56 +54,56 @@ contract OptimizedStorageManager {
             StorageSlotSelfDestructable(addr).destruct();
         }
 
-        if (data.length > SLOT_LIMIT){
+        if (data.length > SLOT_LIMIT) {
             // store in new contract
-            keyToContract[key] = SlotHelper.addrToBytes32(StorageHelper.putRaw2(key , data, value));
-        }else{
+            keyToContract[key] = SlotHelper.addrToBytes32(
+                StorageHelper.putRaw2(key, data, value)
+            );
+        } else {
             // store in slot
-            keyToContract[key] = SlotHelper.putRaw(keyToSlot[key],data);
+            keyToContract[key] = SlotHelper.putRaw(keyToSlot[key], data);
         }
-
     }
 
     function _get(bytes32 key) internal view returns (bytes memory, bool) {
         bytes32 metadata = keyToContract[key];
         address addr = SlotHelper.bytes32ToAddr(metadata);
 
-        if (SlotHelper.isInSlot(metadata)){
-            bytes memory res  = SlotHelper.getRaw(keyToSlot[key], metadata);
-            return (res,true);
-        }else{
+        if (SlotHelper.isInSlot(metadata)) {
+            bytes memory res = SlotHelper.getRaw(keyToSlot[key], metadata);
+            return (res, true);
+        } else {
             return StorageHelper.getRaw(addr);
         }
-
     }
 
-    function _filesize(bytes32 key) internal view returns(uint){
+    function _filesize(bytes32 key) internal view returns (uint256) {
         bytes32 metadata = keyToContract[key];
         address addr = SlotHelper.bytes32ToAddr(metadata);
 
-        if (metadata == bytes32(0)){
+        if (metadata == bytes32(0)) {
             return 0;
-        }else if (SlotHelper.isInSlot(metadata)){
+        } else if (SlotHelper.isInSlot(metadata)) {
             return SlotHelper.decodeLen(metadata);
-        }else{
-            (uint size, )= StorageHelper.sizeRaw(addr);
+        } else {
+            (uint256 size, ) = StorageHelper.sizeRaw(addr);
             return size;
         }
     }
 
-    function _whereStore(bytes32 key) internal view returns(uint){
+    function _whereStore(bytes32 key) internal view returns (uint256) {
         bytes32 metadata = keyToContract[key];
         address addr = SlotHelper.bytes32ToAddr(metadata);
 
-        if (metadata == bytes32(0)){
+        if (metadata == bytes32(0)) {
             return NO_EXIST;
-        }else if (SlotHelper.isInSlot(metadata)){
+        } else if (SlotHelper.isInSlot(metadata)) {
             return IN_SLOT;
-        }else{
-            (,bool found)= StorageHelper.sizeRaw(addr);
-            if (found){
+        } else {
+            (, bool found) = StorageHelper.sizeRaw(addr);
+            if (found) {
                 return IN_CONTRACT_CODE;
-            }else{
+            } else {
                 // happen error
                 return WHERE_STORE_ERROR;
             }
@@ -117,15 +117,15 @@ contract OptimizedStorageManager {
             return false;
         }
 
-        if (!SlotHelper.isInSlot(metadata)){
+        if (!SlotHelper.isInSlot(metadata)) {
             address addr = SlotHelper.bytes32ToAddr(metadata);
-            if (addr != address(0x0)){
+            if (addr != address(0x0)) {
                 StorageSlotSelfDestructable(addr).destruct();
             }
         }
 
         // cover slot case
-        keyToContract[key] =0;
+        keyToContract[key] = 0;
         return true;
     }
 }
