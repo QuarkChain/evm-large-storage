@@ -8,6 +8,7 @@ import "../StorageSlotSelfDestructable.sol";
 contract OptimizedLargeStorageManager{
     uint internal constant SLOTLIMIT = 220; 
     mapping(bytes32 => mapping(uint256 => bytes32)) public keyToContract;
+    mapping(bytes32=>mapping(uint256=>mapping(uint256=>bytes32))) public keyToSlot;
 
     function _putChunk(
         bytes32 key,
@@ -36,7 +37,7 @@ contract OptimizedLargeStorageManager{
         if (data.length > SLOTLIMIT){
             keyToContract[key][chunkId] = SlotHelper.addrToBytes32(StorageHelper.putRaw(data, value));
         }else{
-            keyToContract[key][chunkId] = SlotHelper.putRaw(key,data);
+            keyToContract[key][chunkId] = SlotHelper.putRaw(keyToSlot[key][chunkId],data);
         }
     }
 
@@ -48,7 +49,7 @@ contract OptimizedLargeStorageManager{
         bytes32 metadata = keyToContract[key][chunkId];
         address addr = SlotHelper.bytes32ToAddr(metadata);
         if (SlotHelper.isInSlot(metadata)){
-            bytes memory res  = SlotHelper.getRaw(key, metadata);
+            bytes memory res  = SlotHelper.getRaw(keyToSlot[key][chunkId], metadata);
             return (res,true);
         }else{
             return StorageHelper.getRaw(addr);
@@ -126,7 +127,7 @@ contract OptimizedLargeStorageManager{
             if (SlotHelper.isInSlot(metadata)){
                 //todo
                 chunkSize = SlotHelper.decodeLen(metadata);
-                SlotHelper.getRawAt(key, metadata,dataPtr);
+                SlotHelper.getRawAt(keyToSlot[key][chunkId], metadata,dataPtr);
 
             }else{
                 (chunkSize, ) = StorageHelper.sizeRaw(addr);
