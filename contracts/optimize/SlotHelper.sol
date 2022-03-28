@@ -30,16 +30,16 @@ library SlotHelper{
     }
 
     function encodeMetadata(bytes memory data) internal pure returns(bytes32 medata){
+        uint256 datLen = data.length;
+        uint256 value;
         assembly{
-            let len := mload(data)
-            let value := mload(add(data,0x20))
-            
-            // operator in stack 
-            len := shl(LEN_OFFSET,len)
-            value := shr(SLOTDATA_RIGHT_SHIFT,value) 
-
-            medata := or(len,value)
+            value := mload(add(data,0x20))
         }
+
+        datLen = datLen << LEN_OFFSET;
+        value = value >> SLOTDATA_RIGHT_SHIFT;
+        
+        medata = bytes32(value|datLen);
     }
 
     function decodeMetadata(bytes32 mdata) internal pure returns(uint len ,bytes32 data){
