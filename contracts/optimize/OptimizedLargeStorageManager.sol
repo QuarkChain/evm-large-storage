@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "./SlotHelper.sol";
 import "../StorageHelper.sol";
 import "../StorageSlotSelfDestructable.sol";
+import "../LargeStorageManager.sol";
 
-contract OptimizedLargeStorageManager{
+contract OptimizedLargeStorageManager {
     uint internal constant SLOTLIMIT = 220; 
     mapping(bytes32 => mapping(uint256 => bytes32)) public keyToContract;
     mapping(bytes32=>mapping(uint256=>mapping(uint256=>bytes32))) public keyToSlot;
