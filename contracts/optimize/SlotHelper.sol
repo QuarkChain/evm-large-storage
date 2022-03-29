@@ -137,8 +137,7 @@ library SlotHelper {
     }
 
     function isInSlot(bytes32 mdata) internal pure returns (bool succeed) {
-        uint256 exist = uint256(mdata) >> LEN_OFFSET;
-        return exist > 0;
+        return decodeLen(mdata) > 0;
     }
 
     function encodeLen(uint256 datalen) internal pure returns (bytes32 res) {
