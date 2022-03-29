@@ -12,7 +12,6 @@ contract SlotHelperTest {
     }
 
     function get(bytes32 key) public view returns (bytes memory res) {
-        // uint datalen = SlotHelper.decodeLen(metadatas[key]);
         bytes32 md = metadatas[key];
         res = SlotHelper.getRaw(slots[key], md);
     }
