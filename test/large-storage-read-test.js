@@ -7,7 +7,7 @@ var ToBig = (x) => ethers.BigNumber.from(x);
 describe("FlatDirectory Large Read Test", function () {
   it("large read/write", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectoryTest");
-    const fd = await FlatDirectory.deploy();
+    const fd = await FlatDirectory.deploy(0);
     await fd.deployed();
 
     // let nchunk = 85;  // 85 * 12 * 1024 ~ 1M

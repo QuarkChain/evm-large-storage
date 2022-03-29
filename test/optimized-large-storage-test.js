@@ -89,8 +89,8 @@ describe("OptimizedFlatDirectory Test", function () {
 
     let OPFlatDirectory
     beforeEach(async()=>{
-        factory = await ethers.getContractFactory("OptimizedFlatDirectory");
-        OPFlatDirectory = await factory.deploy();
+        factory = await ethers.getContractFactory("FlatDirectory");
+        OPFlatDirectory = await factory.deploy(220);
         await OPFlatDirectory.deployed();
     })
 
@@ -156,9 +156,8 @@ describe("OptimizedFlatDirectory Test", function () {
     })
 
     it("write/remove chunks", async function () {
-        const FlatDirectory = await ethers.getContractFactory("OptimizedFlatDirectory");
-        const fd = await FlatDirectory.deploy();
-        await fd.deployed();
+        // const FlatDirectory = await ethers.getContractFactory("OptimizedFlatDirectory");
+        const fd = OPFlatDirectory
 
         expect(await fd.countChunks("0x616263")).to.eql(ToBig(0));
 

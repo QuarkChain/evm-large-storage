@@ -7,7 +7,7 @@ var ToBig = (x) => ethers.BigNumber.from(x);
 describe("FlatDirectory Test", function () {
   it("read/write", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
-    const fd = await FlatDirectory.deploy();
+    const fd = await FlatDirectory.deploy(0);
     await fd.deployed();
 
     await fd.write("0x616263", "0x112233");
@@ -26,7 +26,7 @@ describe("FlatDirectory Test", function () {
 
   it("read/write chunks", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
-    const fd = await FlatDirectory.deploy();
+    const fd = await FlatDirectory.deploy(0);
     await fd.deployed();
 
     let data0 = Array.from({ length: 1024 }, () =>
@@ -57,7 +57,7 @@ describe("FlatDirectory Test", function () {
 
   it("write/remove chunks", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
-    const fd = await FlatDirectory.deploy();
+    const fd = await FlatDirectory.deploy(0);
     await fd.deployed();
 
     expect(await fd.countChunks("0x616263")).to.eql(ToBig(0));

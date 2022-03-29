@@ -36,8 +36,8 @@ describe("OptimizedStorageManagerTest Test", function () {
     let  OptimizedStorageManagerTest
 
     beforeEach(async()=>{
-        let factory = await ethers.getContractFactory("OptimizedStorageManagerTest")
-        OptimizedStorageManagerTest = await factory.deploy()
+        let factory = await ethers.getContractFactory("StorageManagerTest")
+        OptimizedStorageManagerTest = await factory.deploy(220)
         await OptimizedStorageManagerTest.deployed()
     })
 
