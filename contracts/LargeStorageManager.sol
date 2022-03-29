@@ -39,7 +39,7 @@ contract LargeStorageManager {
             );
         }
 
-        if (!SlotHelper.isInSlot(metadata)) {
+        if (!metadata.isInSlot()) {
             if (addr != address(0x0)) {
                 // remove the KV first if it exists
                 StorageSlotSelfDestructable(addr).destruct();
@@ -66,7 +66,7 @@ contract LargeStorageManager {
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
         address addr = metadata.bytes32ToAddr();
-        if (SlotHelper.isInSlot(metadata)) {
+        if (metadata.isInSlot()) {
             bytes memory res = SlotHelper.getRaw(
                 keyToSlots[key][chunkId],
                 metadata
@@ -87,8 +87,8 @@ contract LargeStorageManager {
 
         if (metadata == bytes32(0)) {
             return (0, false);
-        } else if (SlotHelper.isInSlot(metadata)) {
-            uint256 len = SlotHelper.decodeLen(metadata);
+        } else if (metadata.isInSlot()) {
+            uint256 len = metadata.decodeLen();
             return (len, true);
         } else {
             return StorageHelper.sizeRaw(addr);
@@ -144,9 +144,9 @@ contract LargeStorageManager {
             address addr = metadata.bytes32ToAddr();
 
             uint256 chunkSize = 0;
-            if (SlotHelper.isInSlot(metadata)) {
+            if (metadata.isInSlot()) {
                 //todo
-                chunkSize = SlotHelper.decodeLen(metadata);
+                chunkSize = metadata.decodeLen();
                 SlotHelper.getRawAt(
                     keyToSlots[key][chunkId],
                     metadata,
@@ -174,7 +174,7 @@ contract LargeStorageManager {
                 break;
             }
 
-            if (!SlotHelper.isInSlot(metadata)) {
+            if (!metadata.isInSlot()) {
                 // remove new contract
                 StorageSlotSelfDestructable(addr).destruct();
             }
@@ -202,7 +202,7 @@ contract LargeStorageManager {
             return false;
         }
 
-        if (!SlotHelper.isInSlot(metadata)) {
+        if (!metadata.isInSlot()) {
             // remove new contract
             StorageSlotSelfDestructable(addr).destruct();
         }
