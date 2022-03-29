@@ -9,7 +9,9 @@ import "./StorageSlotSelfDestructable.sol";
 contract LargeStorageManager {
     using SlotHelper for bytes32;
     using SlotHelper for address;
+
     uint8 internal immutable SLOT_LIMIT;
+    
     mapping(bytes32 => mapping(uint256 => bytes32)) internal keyToMetadata;
     mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32)))
         internal keyToSlots;
