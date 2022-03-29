@@ -6,14 +6,14 @@ import "./StorageSlotSelfDestructable.sol";
 
 // Large storage manager to support arbitrarily-sized data with multiple chunk
 contract LargeStorageManager {
-    mapping(bytes32 => mapping(uint256 => address)) internal keyToContract;
+    mapping(bytes32 => mapping(uint256 => address)) private keyToContract;
 
     function _putChunk(
         bytes32 key,
         uint256 chunkId,
         bytes memory data,
         uint256 value
-    ) internal {
+    ) internal virtual{
         address addr = keyToContract[key][chunkId];
         if (addr != address(0x0)) {
             // remove the KV first if it exists
@@ -31,6 +31,7 @@ contract LargeStorageManager {
     function _getChunk(bytes32 key, uint256 chunkId)
         internal
         view
+        virtual
         returns (bytes memory, bool)
     {
         address addr = keyToContract[key][chunkId];
@@ -40,13 +41,14 @@ contract LargeStorageManager {
     function _chunkSize(bytes32 key, uint256 chunkId)
         internal
         view
+        virtual
         returns (uint256, bool)
     {
         address addr = keyToContract[key][chunkId];
         return StorageHelper.sizeRaw(addr);
     }
 
-    function _countChunks(bytes32 key) internal view returns (uint256) {
+    function _countChunks(bytes32 key) internal view virtual returns (uint256) {
         uint256 chunkId = 0;
 
         while (true) {
@@ -62,7 +64,7 @@ contract LargeStorageManager {
     }
 
     // Returns (size, # of chunks).
-    function _size(bytes32 key) internal view returns (uint256, uint256) {
+    function _size(bytes32 key) internal view virtual returns (uint256, uint256) {
         uint256 size = 0;
         uint256 chunkId = 0;
 
@@ -80,7 +82,7 @@ contract LargeStorageManager {
         return (size, chunkId);
     }
 
-    function _get(bytes32 key) internal view returns (bytes memory, bool) {
+    function _get(bytes32 key) internal view virtual returns (bytes memory, bool) {
         (uint256 size, uint256 chunkNum) = _size(key);
         if (chunkNum == 0) {
             return (new bytes(0), false);
@@ -103,7 +105,7 @@ contract LargeStorageManager {
     }
 
     // Returns # of chunks deleted
-    function _remove(bytes32 key) internal returns (uint256) {
+    function _remove(bytes32 key) internal virtual returns (uint256) {
         uint256 chunkId = 0;
 
         while (true) {
@@ -123,6 +125,7 @@ contract LargeStorageManager {
 
     function _removeChunk(bytes32 key, uint256 chunkId)
         internal
+        virtual
         returns (bool)
     {
         address addr = keyToContract[key][chunkId];
