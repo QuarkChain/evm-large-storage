@@ -4,8 +4,8 @@ pragma solidity ^0.8.0;
 import "./StorageManager.sol";
 
 contract StorageManagerTest is StorageManager {
+    constructor(uint8 slotLimit) StorageManager(slotLimit) {}
 
-    constructor(uint8 slotLimit) StorageManager(slotLimit){}
     function get(bytes32 key) public view returns (bytes memory) {
         (bytes memory data, ) = _get(key);
         return data;

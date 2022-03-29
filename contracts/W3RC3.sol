@@ -7,7 +7,7 @@ import "./LargeStorageManager.sol";
 contract W3RC3 is IW3RC3, LargeStorageManager {
     address public owner;
 
-    constructor(uint8 slotLimit) LargeStorageManager(slotLimit){
+    constructor(uint8 slotLimit) LargeStorageManager(slotLimit) {
         owner = msg.sender;
     }
 

@@ -7,7 +7,9 @@ import "./StorageSlotSelfDestructable.sol";
 
 // Large storage manager to support arbitrarily-sized data with multiple chunk
 contract LargeStorageManager {
-    uint8 internal immutable SLOT_LIMIT ;
+    using SlotHelper for bytes32;
+    using SlotHelper for address;
+    uint8 internal immutable SLOT_LIMIT;
     mapping(bytes32 => mapping(uint256 => bytes32)) internal keyToMetadata;
     mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32)))
         internal keyToSlots;
@@ -16,17 +18,18 @@ contract LargeStorageManager {
         SLOT_LIMIT = slotLimit;
     }
 
-    function isOptimize() internal view returns(bool) {
+    function isOptimize() internal view returns (bool) {
         return SLOT_LIMIT > 0;
     }
+
     function _putChunk(
         bytes32 key,
         uint256 chunkId,
         bytes memory data,
         uint256 value
-    ) internal  {
+    ) internal {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
         if (metadata == bytes32(0)) {
             require(
                 chunkId == 0 || keyToMetadata[key][chunkId - 1] != bytes32(0x0),
@@ -43,9 +46,7 @@ contract LargeStorageManager {
 
         // store data and rewrite metadata
         if (data.length > SLOT_LIMIT) {
-            keyToMetadata[key][chunkId] = SlotHelper.addrToBytes32(
-                StorageHelper.putRaw(data, value)
-            );
+            keyToMetadata[key][chunkId] = StorageHelper.putRaw(data, value).addrToBytes32();
         } else {
             keyToMetadata[key][chunkId] = SlotHelper.putRaw(
                 keyToSlots[key][chunkId],
@@ -60,7 +61,7 @@ contract LargeStorageManager {
         returns (bytes memory, bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
         if (SlotHelper.isInSlot(metadata)) {
             bytes memory res = SlotHelper.getRaw(
                 keyToSlots[key][chunkId],
@@ -78,7 +79,7 @@ contract LargeStorageManager {
         returns (uint256, bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
 
         if (metadata == bytes32(0)) {
             return (0, false);
@@ -106,7 +107,7 @@ contract LargeStorageManager {
     }
 
     // Returns (size, # of chunks).
-    function _size(bytes32 key) internal view  returns (uint256, uint256) {
+    function _size(bytes32 key) internal view returns (uint256, uint256) {
         uint256 size = 0;
         uint256 chunkId = 0;
 
@@ -123,7 +124,7 @@ contract LargeStorageManager {
         return (size, chunkId);
     }
 
-    function _get(bytes32 key) internal view  returns (bytes memory, bool) {
+    function _get(bytes32 key) internal view returns (bytes memory, bool) {
         (uint256 size, uint256 chunkNum) = _size(key);
         if (chunkNum == 0) {
             return (new bytes(0), false);
@@ -136,13 +137,17 @@ contract LargeStorageManager {
         }
         for (uint256 chunkId = 0; chunkId < chunkNum; chunkId++) {
             bytes32 metadata = keyToMetadata[key][chunkId];
-            address addr = SlotHelper.bytes32ToAddr(metadata);
+            address addr = metadata.bytes32ToAddr();
 
             uint256 chunkSize = 0;
             if (SlotHelper.isInSlot(metadata)) {
                 //todo
                 chunkSize = SlotHelper.decodeLen(metadata);
-                SlotHelper.getRawAt(keyToSlots[key][chunkId], metadata, dataPtr);
+                SlotHelper.getRawAt(
+                    keyToSlots[key][chunkId],
+                    metadata,
+                    dataPtr
+                );
             } else {
                 (chunkSize, ) = StorageHelper.sizeRaw(addr);
                 StorageHelper.getRawAt(addr, dataPtr);
@@ -155,12 +160,12 @@ contract LargeStorageManager {
     }
 
     // Returns # of chunks deleted
-    function _remove(bytes32 key) internal  returns (uint256) {
+    function _remove(bytes32 key) internal returns (uint256) {
         uint256 chunkId = 0;
 
         while (true) {
             bytes32 metadata = keyToMetadata[key][chunkId];
-            address addr = SlotHelper.bytes32ToAddr(metadata);
+            address addr = metadata.bytes32ToAddr();
             if (metadata == bytes32(0x0)) {
                 break;
             }
@@ -183,7 +188,7 @@ contract LargeStorageManager {
         returns (bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
         if (metadata == bytes32(0x0)) {
             return false;
         }
