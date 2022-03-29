@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import "./SlotHelper.sol";
 import "../StorageHelper.sol";
 import "../StorageSlotSelfDestructable.sol";
+import "../LargeStorageManager.sol";
 
-contract OptimizedLargeStorageManager {
+contract OptimizedLargeStorageManager is LargeStorageManager{
     uint256 internal constant SLOT_LIMIT = 220;
     mapping(bytes32 => mapping(uint256 => bytes32)) public keyToContract;
     mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32)))
@@ -16,7 +17,7 @@ contract OptimizedLargeStorageManager {
         uint256 chunkId,
         bytes memory data,
         uint256 value
-    ) internal {
+    ) internal override {
         bytes32 metadata = keyToContract[key][chunkId];
         address addr = SlotHelper.bytes32ToAddr(metadata);
         if (metadata == bytes32(0)) {
@@ -49,6 +50,7 @@ contract OptimizedLargeStorageManager {
     function _getChunk(bytes32 key, uint256 chunkId)
         internal
         view
+        override
         returns (bytes memory, bool)
     {
         bytes32 metadata = keyToContract[key][chunkId];
@@ -67,6 +69,7 @@ contract OptimizedLargeStorageManager {
     function _chunkSize(bytes32 key, uint256 chunkId)
         internal
         view
+        override
         returns (uint256, bool)
     {
         bytes32 metadata = keyToContract[key][chunkId];
@@ -82,7 +85,7 @@ contract OptimizedLargeStorageManager {
         }
     }
 
-    function _countChunks(bytes32 key) internal view returns (uint256) {
+    function _countChunks(bytes32 key) internal view override returns (uint256) {
         uint256 chunkId = 0;
 
         while (true) {
@@ -98,7 +101,7 @@ contract OptimizedLargeStorageManager {
     }
 
     // Returns (size, # of chunks).
-    function _size(bytes32 key) internal view returns (uint256, uint256) {
+    function _size(bytes32 key) internal view override returns (uint256, uint256) {
         uint256 size = 0;
         uint256 chunkId = 0;
 
@@ -115,7 +118,7 @@ contract OptimizedLargeStorageManager {
         return (size, chunkId);
     }
 
-    function _get(bytes32 key) internal view returns (bytes memory, bool) {
+    function _get(bytes32 key) internal view override returns (bytes memory, bool) {
         (uint256 size, uint256 chunkNum) = _size(key);
         if (chunkNum == 0) {
             return (new bytes(0), false);
@@ -147,7 +150,7 @@ contract OptimizedLargeStorageManager {
     }
 
     // Returns # of chunks deleted
-    function _remove(bytes32 key) internal returns (uint256) {
+    function _remove(bytes32 key) internal override returns (uint256) {
         uint256 chunkId = 0;
 
         while (true) {
@@ -172,6 +175,7 @@ contract OptimizedLargeStorageManager {
 
     function _removeChunk(bytes32 key, uint256 chunkId)
         internal
+        override
         returns (bool)
     {
         bytes32 metadata = keyToContract[key][chunkId];
