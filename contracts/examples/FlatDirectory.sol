@@ -7,8 +7,8 @@ import "../W3RC3.sol";
 contract FlatDirectory is W3RC3 {
     bytes public defaultFile = "";
 
-    constructor(uint8 slotLimit) W3RC3(slotLimit){}
-    
+    constructor(uint8 slotLimit) W3RC3(slotLimit) {}
+
     function resolveMode() external pure virtual returns (bytes32) {
         return "manual";
     }

@@ -8,7 +8,7 @@ contract SimpleFlatDirectory is StorageManager {
     bytes public defaultFile = "";
     address public immutable owner;
 
-    constructor(uint8 slotLimit)StorageManager(slotLimit) {
+    constructor(uint8 slotLimit) StorageManager(slotLimit) {
         owner = msg.sender;
     }
 
