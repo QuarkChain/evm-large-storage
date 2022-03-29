@@ -68,7 +68,6 @@ library SlotHelper{
                 assembly{
                     ptr := add(data, add(0x20,FIRST_SLOT_DATA_SIZE))
                     ptr := add(ptr, mul(i,32))
-                    // ptr := add(ptr,0x20)
 
                     mstore(ptr,value)
                 }
@@ -97,7 +96,6 @@ library SlotHelper{
                 assembly{
                     ptr := add(dataPtr, FIRST_SLOT_DATA_SIZE)
                     ptr := add(ptr, mul(i,32))
-                    // ptr := add(ptr,0x20)
 
                     mstore(ptr,value)
                 }
