@@ -11,7 +11,7 @@ contract LargeStorageManager {
     using SlotHelper for address;
 
     uint8 internal immutable SLOT_LIMIT;
-    
+
     mapping(bytes32 => mapping(uint256 => bytes32)) internal keyToMetadata;
     mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32)))
         internal keyToSlots;
@@ -48,7 +48,9 @@ contract LargeStorageManager {
 
         // store data and rewrite metadata
         if (data.length > SLOT_LIMIT) {
-            keyToMetadata[key][chunkId] = StorageHelper.putRaw(data, value).addrToBytes32();
+            keyToMetadata[key][chunkId] = StorageHelper
+                .putRaw(data, value)
+                .addrToBytes32();
         } else {
             keyToMetadata[key][chunkId] = SlotHelper.putRaw(
                 keyToSlots[key][chunkId],
