@@ -13,7 +13,7 @@ contract LargeStorageManager {
         uint256 chunkId,
         bytes memory data,
         uint256 value
-    ) internal virtual{
+    ) internal virtual {
         address addr = keyToContract[key][chunkId];
         if (addr != address(0x0)) {
             // remove the KV first if it exists
@@ -64,7 +64,12 @@ contract LargeStorageManager {
     }
 
     // Returns (size, # of chunks).
-    function _size(bytes32 key) internal view virtual returns (uint256, uint256) {
+    function _size(bytes32 key)
+        internal
+        view
+        virtual
+        returns (uint256, uint256)
+    {
         uint256 size = 0;
         uint256 chunkId = 0;
 
@@ -82,7 +87,12 @@ contract LargeStorageManager {
         return (size, chunkId);
     }
 
-    function _get(bytes32 key) internal view virtual returns (bytes memory, bool) {
+    function _get(bytes32 key)
+        internal
+        view
+        virtual
+        returns (bytes memory, bool)
+    {
         (uint256 size, uint256 chunkNum) = _size(key);
         if (chunkNum == 0) {
             return (new bytes(0), false);
