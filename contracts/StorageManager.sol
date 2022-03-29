@@ -6,7 +6,7 @@ import "./StorageHelper.sol";
 import "./StorageSlotSelfDestructable.sol";
 
 contract StorageManager {
-     uint8 internal constant NO_EXIST = 0;
+    uint8 internal constant NO_EXIST = 0;
     uint8 internal constant IN_SLOT = 1;
     uint8 internal constant IN_CONTRACT_CODE = 2;
     uint8 internal constant WHERE_STORE_ERROR = 255;
