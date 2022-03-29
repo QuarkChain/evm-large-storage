@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-// 存储方法
 library SlotHelper{
     uint256 internal constant SLOTDATA_RIGHT_SHIFT = 32;
     uint256 internal constant LEN_OFFSET = 224;
@@ -83,7 +82,7 @@ library SlotHelper{
         bytes32 datapart;
         (datalen, datapart)= decodeMetadata(mdata);
 
-        uint dataPtr = memoryPtr;
+        uint256 dataPtr = memoryPtr;
         assembly{
             mstore(dataPtr,datapart)
         }
@@ -115,7 +114,7 @@ library SlotHelper{
     }
 
     function decodeLen(bytes32 mdata) internal pure returns(uint res){
-        res = uint(mdata) >> LEN_OFFSET;
+        res = uint256(mdata) >> LEN_OFFSET;
     }
 
     function addrToBytes32(address addr)internal pure returns(bytes32){
