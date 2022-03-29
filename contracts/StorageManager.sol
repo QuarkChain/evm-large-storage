@@ -6,12 +6,16 @@ import "./StorageHelper.sol";
 import "./StorageSlotSelfDestructable.sol";
 
 contract StorageManager {
+    using SlotHelper for bytes32;
+    using SlotHelper for address;
+
     uint8 internal constant NO_EXIST = 0;
     uint8 internal constant IN_SLOT = 1;
     uint8 internal constant IN_CONTRACT_CODE = 2;
     uint8 internal constant WHERE_STORE_ERROR = 255;
 
-    uint256 internal immutable SLOT_LIMIT;
+    uint8 internal immutable SLOT_LIMIT;
+
     mapping(bytes32 => bytes32) public keyToMetadata;
     mapping(bytes32 => mapping(uint256 => bytes32)) public keyToSlots;
 
@@ -27,7 +31,7 @@ contract StorageManager {
         bytes32 metadata = keyToMetadata[key];
 
         if (!SlotHelper.isInSlot(metadata)) {
-            address addr = SlotHelper.bytes32ToAddr(metadata);
+            address addr = metadata.bytes32ToAddr();
             // Notify: No need to delete metadata here, because it will be rewritten later
             if (addr != address(0x0)) {
                 // remove the KV first if it exists
@@ -37,9 +41,8 @@ contract StorageManager {
 
         if (data.length > SLOT_LIMIT) {
             // store in new contract
-            keyToMetadata[key] = SlotHelper.addrToBytes32(
-                StorageHelper.putRaw(data, value)
-            );
+            keyToMetadata[key] = StorageHelper.putRaw(data, value).addrToBytes32();
+
         } else {
             // store in slot
             keyToMetadata[key] = SlotHelper.putRaw(keyToSlots[key], data);
@@ -52,7 +55,7 @@ contract StorageManager {
         uint256 value
     ) internal {
         bytes32 metadata = keyToMetadata[key];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
         if (addr != address(0x0)) {
             // remove the KV first if it exists
             StorageSlotSelfDestructable(addr).destruct();
@@ -60,9 +63,7 @@ contract StorageManager {
 
         if (data.length > SLOT_LIMIT) {
             // store in new contract
-            keyToMetadata[key] = SlotHelper.addrToBytes32(
-                StorageHelper.putRaw2(key, data, value)
-            );
+            keyToMetadata[key] = StorageHelper.putRaw2(key, data, value).addrToBytes32();
         } else {
             // store in slot
             keyToMetadata[key] = SlotHelper.putRaw(keyToSlots[key], data);
@@ -71,7 +72,7 @@ contract StorageManager {
 
     function _get(bytes32 key) internal view returns (bytes memory, bool) {
         bytes32 metadata = keyToMetadata[key];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
 
         if (SlotHelper.isInSlot(metadata)) {
             bytes memory res = SlotHelper.getRaw(keyToSlots[key], metadata);
@@ -83,7 +84,7 @@ contract StorageManager {
 
     function _size(bytes32 key) internal view returns (uint256) {
         bytes32 metadata = keyToMetadata[key];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
 
         if (metadata == bytes32(0)) {
             return 0;
@@ -97,7 +98,7 @@ contract StorageManager {
 
     function _loaction(bytes32 key) internal view returns (uint256) {
         bytes32 metadata = keyToMetadata[key];
-        address addr = SlotHelper.bytes32ToAddr(metadata);
+        address addr = metadata.bytes32ToAddr();
 
         if (metadata == bytes32(0)) {
             return NO_EXIST;
@@ -122,7 +123,7 @@ contract StorageManager {
         }
 
         if (!SlotHelper.isInSlot(metadata)) {
-            address addr = SlotHelper.bytes32ToAddr(metadata);
+            address addr = metadata.bytes32ToAddr();
             if (addr != address(0x0)) {
                 StorageSlotSelfDestructable(addr).destruct();
             }
