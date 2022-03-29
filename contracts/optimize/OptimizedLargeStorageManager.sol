@@ -8,9 +8,9 @@ import "../LargeStorageManager.sol";
 
 contract OptimizedLargeStorageManager is LargeStorageManager{
     uint256 internal constant SLOT_LIMIT = 220;
-    mapping(bytes32 => mapping(uint256 => bytes32)) public keyToContract;
+    mapping(bytes32 => mapping(uint256 => bytes32)) internal keyToContract;
     mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32)))
-        public keyToSlot;
+        internal keyToSlot;
 
     function _putChunk(
         bytes32 key,
