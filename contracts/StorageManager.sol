@@ -75,39 +75,39 @@ contract StorageManager {
 
     function _get(bytes32 key) internal view returns (bytes memory, bool) {
         bytes32 metadata = keyToMetadata[key];
-        address addr = metadata.bytes32ToAddr();
 
         if (metadata.isInSlot()) {
             bytes memory res = SlotHelper.getRaw(keyToSlots[key], metadata);
             return (res, true);
         } else {
+            address addr = metadata.bytes32ToAddr();
             return StorageHelper.getRaw(addr);
         }
     }
 
     function _size(bytes32 key) internal view returns (uint256) {
         bytes32 metadata = keyToMetadata[key];
-        address addr = metadata.bytes32ToAddr();
 
         if (metadata == bytes32(0)) {
             return 0;
         } else if (metadata.isInSlot()) {
             return metadata.decodeLen();
         } else {
+            address addr = metadata.bytes32ToAddr();
             (uint256 size, ) = StorageHelper.sizeRaw(addr);
             return size;
         }
     }
 
-    function _loaction(bytes32 key) internal view returns (uint256) {
+    function _location(bytes32 key) internal view returns (uint256) {
         bytes32 metadata = keyToMetadata[key];
-        address addr = metadata.bytes32ToAddr();
 
         if (metadata == bytes32(0)) {
             return NO_EXIST;
         } else if (metadata.isInSlot()) {
             return IN_SLOT;
         } else {
+            address addr = metadata.bytes32ToAddr();
             (, bool found) = StorageHelper.sizeRaw(addr);
             if (found) {
                 return IN_CONTRACT_CODE;

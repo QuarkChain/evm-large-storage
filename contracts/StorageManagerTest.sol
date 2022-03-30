@@ -30,7 +30,7 @@ contract StorageManagerTest is StorageManager {
     }
 
     function whereStore(bytes32 key) public view returns (uint256) {
-        return _loaction(key);
+        return _location(key);
     }
 
     function remove(bytes32 key) public {
