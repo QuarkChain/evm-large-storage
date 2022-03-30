@@ -12,7 +12,7 @@ contract StorageManagerTest is StorageManager {
     }
 
     // for gas metering
-    function getWithoutView(bytes32 key) public view returns (bytes memory) {
+    function getWithoutView(bytes32 key) public returns (bytes memory) {
         (bytes memory data, ) = _get(key);
         return data;
     }
