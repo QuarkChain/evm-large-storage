@@ -20,7 +20,7 @@ contract LargeStorageManager {
         SLOT_LIMIT = slotLimit;
     }
 
-    function isOptimize() internal view returns (bool) {
+    function isOptimize() public view returns (bool) {
         return SLOT_LIMIT > 0;
     }
 
@@ -31,7 +31,7 @@ contract LargeStorageManager {
         uint256 value
     ) internal {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = metadata.bytes32ToAddr();
+        
         if (metadata == bytes32(0)) {
             require(
                 chunkId == 0 || keyToMetadata[key][chunkId - 1] != bytes32(0x0),
@@ -40,6 +40,7 @@ contract LargeStorageManager {
         }
 
         if (!metadata.isInSlot()) {
+            address addr = metadata.bytes32ToAddr();
             if (addr != address(0x0)) {
                 // remove the KV first if it exists
                 StorageSlotSelfDestructable(addr).destruct();
@@ -65,7 +66,7 @@ contract LargeStorageManager {
         returns (bytes memory, bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = metadata.bytes32ToAddr();
+        
         if (metadata.isInSlot()) {
             bytes memory res = SlotHelper.getRaw(
                 keyToSlots[key][chunkId],
@@ -73,6 +74,7 @@ contract LargeStorageManager {
             );
             return (res, true);
         } else {
+            address addr = metadata.bytes32ToAddr();
             return StorageHelper.getRaw(addr);
         }
     }
@@ -83,7 +85,6 @@ contract LargeStorageManager {
         returns (uint256, bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = metadata.bytes32ToAddr();
 
         if (metadata == bytes32(0)) {
             return (0, false);
@@ -91,6 +92,7 @@ contract LargeStorageManager {
             uint256 len = metadata.decodeLen();
             return (len, true);
         } else {
+            address addr = metadata.bytes32ToAddr();
             return StorageHelper.sizeRaw(addr);
         }
     }
@@ -141,7 +143,6 @@ contract LargeStorageManager {
         }
         for (uint256 chunkId = 0; chunkId < chunkNum; chunkId++) {
             bytes32 metadata = keyToMetadata[key][chunkId];
-            address addr = metadata.bytes32ToAddr();
 
             uint256 chunkSize = 0;
             if (metadata.isInSlot()) {
@@ -153,6 +154,7 @@ contract LargeStorageManager {
                     dataPtr
                 );
             } else {
+                address addr = metadata.bytes32ToAddr();
                 (chunkSize, ) = StorageHelper.sizeRaw(addr);
                 StorageHelper.getRawAt(addr, dataPtr);
             }
@@ -169,12 +171,12 @@ contract LargeStorageManager {
 
         while (true) {
             bytes32 metadata = keyToMetadata[key][chunkId];
-            address addr = metadata.bytes32ToAddr();
             if (metadata == bytes32(0x0)) {
                 break;
             }
 
             if (!metadata.isInSlot()) {
+                address addr = metadata.bytes32ToAddr();
                 // remove new contract
                 StorageSlotSelfDestructable(addr).destruct();
             }
@@ -192,7 +194,6 @@ contract LargeStorageManager {
         returns (bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        address addr = metadata.bytes32ToAddr();
         if (metadata == bytes32(0x0)) {
             return false;
         }
@@ -203,6 +204,7 @@ contract LargeStorageManager {
         }
 
         if (!metadata.isInSlot()) {
+            address addr = metadata.bytes32ToAddr();
             // remove new contract
             StorageSlotSelfDestructable(addr).destruct();
         }
