@@ -106,7 +106,8 @@ library SlotHelper {
     ) internal view returns (uint256 datalen, bool found) {
         bytes32 datapart;
         (datalen, datapart) = decodeMetadata(mdata);
-
+        
+        // memoryPtr:memoryPtr+32 is allocated for the data
         uint256 dataPtr = memoryPtr;
         assembly {
             mstore(dataPtr, datapart)
