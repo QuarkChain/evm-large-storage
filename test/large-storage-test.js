@@ -6,7 +6,6 @@ const { defaultAbiCoder } = require("ethers/lib/utils");
 var ToBig = (x) => ethers.BigNumber.from(x);
 
 describe("FlatDirectory Test", function () {
-
   it("read/write", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
     const fd = await FlatDirectory.deploy();
@@ -113,19 +112,18 @@ describe("FlatDirectory Test", function () {
 
     // read file "/abc" through url as "/abc" will succeed
     await fd.write("0x616263", data0);
-    console.log("Data0:",ethers.utils.hexlify(data0))
+    // console.log("Data0:",ethers.utils.hexlify(data0))
 
-    calldata = "0x2f616263"
-    
-    let returndata  = await web3.eth.call({
-      to:fd.address,
-      data:calldata,
-    })
-    
-    let rData = defaultAbiCoder.decode(["bytes"],returndata)
+    calldata = "0x2f616263";
+
+    let returndata = await web3.eth.call({
+      to: fd.address,
+      data: calldata,
+    });
+
+    let rData = defaultAbiCoder.decode(["bytes"], returndata);
     // console.log(rData.toString())
-    expect(rData.toString()).to.equal(ethers.utils.hexlify(data0))
-
+    expect(rData.toString()).to.equal(ethers.utils.hexlify(data0));
   });
 
   it("set default file and read deafault file thorough fallback ", async function () {
@@ -133,7 +131,7 @@ describe("FlatDirectory Test", function () {
     const fd = await FlatDirectory.deploy();
     await fd.deployed();
 
-    let indexFile = web3.utils.asciiToHex('index.html');
+    let indexFile = web3.utils.asciiToHex("index.html");
     // set default file
     await fd.setDefault(indexFile);
 
@@ -144,31 +142,39 @@ describe("FlatDirectory Test", function () {
     // access file "/index.html" with url as "/" will succeed
     await fd.write(indexFile, data0);
 
-    calldata = "0x2f"
-    let returndata  = await web3.eth.call({
-      to:fd.address,
-      data:calldata,
-    })
-    
-    let rData = defaultAbiCoder.decode(["bytes"],returndata)
-    expect(rData.toString()).to.equal(ethers.utils.hexlify(data0))
+    calldata = "0x2f";
+    let returndata = await web3.eth.call({
+      to: fd.address,
+      data: calldata,
+    });
+
+    let rData = defaultAbiCoder.decode(["bytes"], returndata);
+    expect(rData.toString()).to.equal(ethers.utils.hexlify(data0));
 
     // access file "/dir1/index.html" with url as "/dir1/" will succeed
-    let secondaryIndexFile = web3.utils.asciiToHex("dir1/index.html")
+    let secondaryIndexFile = web3.utils.asciiToHex("dir1/index.html");
     let data1 = Array.from({ length: 10 }, () =>
       Math.floor(Math.random() * 256)
     );
 
-    await fd.write(secondaryIndexFile, data1)
-    calldata1 =  web3.utils.asciiToHex("/dir1/")
-    let returndata1  = await web3.eth.call({
-      to:fd.address,
-      data:calldata1,
-    })
+    await fd.write(secondaryIndexFile, data1);
+    calldata1 = web3.utils.asciiToHex("/dir1/");
+    let returndata1 = await web3.eth.call({
+      to: fd.address,
+      data: calldata1,
+    });
 
-    let rdata1 = defaultAbiCoder.decode(["bytes"],returndata1)
-    expect(rdata1.toString()).to.equal((ethers.utils.hexlify(data1)))
+    let rdata1 = defaultAbiCoder.decode(["bytes"], returndata1);
+    expect(rdata1.toString()).to.equal(ethers.utils.hexlify(data1));
 
+    // access file "/dir1/index.html" with url as "/dir1" will fail
+    calldata1 = web3.utils.asciiToHex("/dir1");
+    returndata1 = await web3.eth.call({
+      to: fd.address,
+      data: calldata1,
+    });
+    rdata1 = defaultAbiCoder.decode(["bytes"], returndata1);
+    console.log(rdata1.toString());
+    expect(rdata1.toString()).to.equal("0x");
   });
 });
-
