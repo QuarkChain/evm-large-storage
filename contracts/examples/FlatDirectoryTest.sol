@@ -15,6 +15,5 @@ contract FlatDirectoryTest is FlatDirectory {
     function readManual(bytes memory name) external returns (bytes memory) {
         (bytes memory content, ) = _get(keccak256(name));
         StorageHelper.returnBytesInplace(content);
-        return content; // will never reach here
     }
 }

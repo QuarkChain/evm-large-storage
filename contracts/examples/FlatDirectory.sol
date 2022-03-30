@@ -21,14 +21,13 @@ contract FlatDirectory is W3RC3 {
             return bytes("incorrect path");
         }
 
-        if (cdata.length == 1) {
-            (content, ) = read(defaultFile);
+        if (cdata[cdata.length - 1] == 0x2f) {
+            (content, ) = read(bytes.concat(cdata[1:], defaultFile));
         } else {
             (content, ) = read(cdata[1:]);
         }
 
         StorageHelper.returnBytesInplace(content);
-        return content;
     }
 
     function setDefault(bytes memory _defaultFile) public {
