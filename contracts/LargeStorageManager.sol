@@ -31,7 +31,7 @@ contract LargeStorageManager {
         uint256 value
     ) internal {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        
+
         if (metadata == bytes32(0)) {
             require(
                 chunkId == 0 || keyToMetadata[key][chunkId - 1] != bytes32(0x0),
@@ -66,7 +66,7 @@ contract LargeStorageManager {
         returns (bytes memory, bool)
     {
         bytes32 metadata = keyToMetadata[key][chunkId];
-        
+
         if (metadata.isInSlot()) {
             bytes memory res = SlotHelper.getRaw(
                 keyToSlots[key][chunkId],
