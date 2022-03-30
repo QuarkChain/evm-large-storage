@@ -146,7 +146,6 @@ contract LargeStorageManager {
 
             uint256 chunkSize = 0;
             if (metadata.isInSlot()) {
-                //todo
                 chunkSize = metadata.decodeLen();
                 SlotHelper.getRawAt(
                     keyToSlots[key][chunkId],
