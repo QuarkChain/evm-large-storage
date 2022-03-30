@@ -10,7 +10,6 @@ library SlotHelper {
         mapping(uint256 => bytes32) storage slots,
         bytes memory datas
     ) internal returns (bytes32 mdata) {
-        // warn: if data as ptr to move,your should keep "data.length" by another ptr
         uint256 len = datas.length;
         mdata = encodeMetadata(datas);
         if (len > FIRST_SLOT_DATA_SIZE) {
