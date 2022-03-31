@@ -33,7 +33,6 @@ describe("SlotHelper Library Test", function () {
 
         //return mdata = "0x0000001401010101010101010101010101010101010101010000000000000000"
         let mdata = await SlotHelperTest.encodeMetadata(data)
-        console.log(mdata)
         
         //return [resLen1,resData1] = [20,"0x0101010101010101010101010101010101010101000000000000000000000000"]
         let [resLen1,resData1] = await SlotHelperTest.decodeMetadata(mdata)
@@ -41,7 +40,6 @@ describe("SlotHelper Library Test", function () {
 
         //return [resLen2,resData2] = [20,"0x0101010101010101010101010101010101010101"]
         let [resLen2,resData2] = await SlotHelperTest.decodeMetadata1(mdata)
-        console.log("resData2:",resData2)
         expect(resLen2.toNumber()).to.eq(len)
         expect(BigNumber.from(data).toHexString()).to.eq(resData2)
 
