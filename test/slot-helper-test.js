@@ -6,7 +6,6 @@ const { Contract,BigNumber } = require("ethers");
 describe("SlotHelper Library Test", function () {
     let  SlotHelperTest
     const SHITLEFT224BIT = BigNumber.from(1).mul(16).pow(56)
-    // const SHITLEFT224BIT = BigNumber.from(1).mul(16).pow(56)
     
     beforeEach(async()=>{
         let factory = await ethers.getContractFactory("SlotHelperTest")
@@ -20,8 +19,6 @@ describe("SlotHelper Library Test", function () {
         let expectRes = BigNumber.from(len).mul(SHITLEFT224BIT).toHexString()
 
         expect(BigNumber.from(res).eq(expectRes)).to.eq(true)
-        // console.log(BigNumber.from(len).mul(SHITLEFT224BIT).toHexString())
-        // console.log(res);
 
         let resLen = await SlotHelperTest.decodeLen(res)
         expect(resLen.eq(BigNumber.from(len))).to.eq(true)
@@ -34,17 +31,15 @@ describe("SlotHelper Library Test", function () {
             data.push(1)
         }
 
-        //0x0000001401010101010101010101010101010101010101010000000000000000
+        //return mdata = "0x0000001401010101010101010101010101010101010101010000000000000000"
         let mdata = await SlotHelperTest.encodeMetadata(data)
         console.log(mdata)
         
-        // 20, 0x0101010101010101010101010101010101010101000000000000000000000000
+        //return [resLen1,resData1] = [20,"0x0101010101010101010101010101010101010101000000000000000000000000"]
         let [resLen1,resData1] = await SlotHelperTest.decodeMetadata(mdata)
-        // console.log("resData1:",resData1, "; resLen1:",resLen1 )
         expect(resLen1.toNumber()).to.eq(len)
-        // expect(BigNumber.from(data).mul())
 
-        // 20, "0x0101010101010101010101010101010101010101"
+        //return [resLen2,resData2] = [20,"0x0101010101010101010101010101010101010101"]
         let [resLen2,resData2] = await SlotHelperTest.decodeMetadata1(mdata)
         console.log("resData2:",resData2)
         expect(resLen2.toNumber()).to.eq(len)
@@ -62,12 +57,9 @@ describe("SlotHelper Library Test", function () {
 
         let tx1 = await SlotHelperTest.put(key,data)
         await tx1.wait()
-        // "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         let resData = await SlotHelperTest.get(key)
-        // console.log(resData)
         let resLen = await SlotHelperTest.getLen(key)
 
-        
         expect(data).to.eq(resData)
         expect(resLen.toNumber()).to.eq(datalen)
     })
@@ -79,11 +71,8 @@ describe("SlotHelper Library Test", function () {
 
         let tx1 = await SlotHelperTest.put(key,data)
         await tx1.wait()
-        // "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         let resData = await SlotHelperTest.get(key)
-        // console.log(resData)
         let resLen = await SlotHelperTest.getLen(key)
-
         
         expect(data).to.eq(resData)
         expect(resLen.toNumber()).to.eq(datalen)

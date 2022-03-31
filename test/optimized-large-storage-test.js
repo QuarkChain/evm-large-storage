@@ -15,10 +15,8 @@ let writeTest = async function (fd, key, filesize, context) {
   await tx1.wait();
 
   let [resData] = await fd.read(key);
-  // console.log(resData)
 
   let [fsize] = await fd.size(key);
-  // console.log(fsize)
 
   expect(BigNumber.from(data).toHexString()).to.eq(resData);
   expect(fsize.toNumber()).to.eq(filesize);
@@ -34,10 +32,7 @@ let writeChunkTest = async function (fd, key, chunkId, filesize, context) {
   await tx1.wait();
 
   let [resData] = await fd.readChunk(key, chunkId);
-  // console.log(resData)
-
   let [fsize] = await fd.chunkSize(key, chunkId);
-  // console.log(fsize)
 
   if (data.length == 0) {
     // deal with special case: return data is null
@@ -82,9 +77,6 @@ let readTest = async function (
 
   let [resData] = await fd.read(key);
   let [fsize] = await fd.size(key);
-
-  // console.log("Size:",fsize)
-  // console.log("Res Data:",resData)
 
   if (data.length == 0) {
     // deal with special case: return data is null
