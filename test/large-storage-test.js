@@ -99,7 +99,7 @@ describe("FlatDirectory Test", function () {
     expect(await fd.countChunks("0x616263")).to.eql(ToBig(1));
   });
 
-  it("readFile thorough fallback ", async function () {
+  it("readFile through fallback ", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
     const fd = await FlatDirectory.deploy();
     await fd.deployed();
@@ -124,7 +124,7 @@ describe("FlatDirectory Test", function () {
     expect(rData.toString()).to.equal(ethers.utils.hexlify(data0));
   });
 
-  it("set default file and read deafault file thorough fallback ", async function () {
+  it("set default file and read default file through fallback ", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
     const fd = await FlatDirectory.deploy();
     await fd.deployed();
