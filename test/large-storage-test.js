@@ -112,7 +112,6 @@ describe("FlatDirectory Test", function () {
 
     // read file "/abc" through url as "/abc" will succeed
     await fd.write("0x616263", data0);
-    // console.log("Data0:",ethers.utils.hexlify(data0))
 
     calldata = "0x2f616263";
 
@@ -122,7 +121,6 @@ describe("FlatDirectory Test", function () {
     });
 
     let rData = defaultAbiCoder.decode(["bytes"], returndata);
-    // console.log(rData.toString())
     expect(rData.toString()).to.equal(ethers.utils.hexlify(data0));
   });
 
