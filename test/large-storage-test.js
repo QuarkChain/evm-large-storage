@@ -101,7 +101,7 @@ describe("FlatDirectory Test", function () {
 
   it("readFile through fallback ", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
-    const fd = await FlatDirectory.deploy();
+    const fd = await FlatDirectory.deploy(0);
     await fd.deployed();
 
     expect(await fd.countChunks("0x616263")).to.eql(ToBig(0));
@@ -126,7 +126,7 @@ describe("FlatDirectory Test", function () {
 
   it("set default file and read default file through fallback ", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
-    const fd = await FlatDirectory.deploy();
+    const fd = await FlatDirectory.deploy(0);
     await fd.deployed();
 
     let indexFile = web3.utils.asciiToHex("index.html");
