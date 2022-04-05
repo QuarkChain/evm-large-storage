@@ -20,6 +20,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function write(bytes memory name, bytes memory data)
         public
         payable
+        virtual
         override
     {
         require(msg.sender == owner, "must from owner");
@@ -30,6 +31,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function read(bytes memory name)
         public
         view
+        virtual
         override
         returns (bytes memory, bool)
     {
@@ -39,13 +41,14 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function size(bytes memory name)
         public
         view
+        virtual
         override
         returns (uint256, uint256)
     {
         return _size(keccak256(name));
     }
 
-    function remove(bytes memory name) public override returns (uint256) {
+    function remove(bytes memory name) public virtual override returns (uint256) {
         require(msg.sender == owner, "must from owner");
         return _remove(keccak256(name));
     }
@@ -53,6 +56,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function countChunks(bytes memory name)
         public
         view
+        virtual
         override
         returns (uint256)
     {
@@ -64,7 +68,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
         bytes memory name,
         uint256 chunkId,
         bytes memory data
-    ) public payable override {
+    ) public payable virtual override {
         require(msg.sender == owner, "must from owner");
         return _putChunk(keccak256(name), chunkId, data, msg.value);
     }
@@ -72,6 +76,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function readChunk(bytes memory name, uint256 chunkId)
         public
         view
+        virtual
         override
         returns (bytes memory, bool)
     {
@@ -81,6 +86,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function chunkSize(bytes memory name, uint256 chunkId)
         public
         view
+        virtual
         override
         returns (uint256, bool)
     {
@@ -89,6 +95,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
 
     function removeChunk(bytes memory name, uint256 chunkId)
         public
+        virtual
         override
         returns (bool)
     {
