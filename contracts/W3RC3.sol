@@ -48,7 +48,12 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
         return _size(keccak256(name));
     }
 
-    function remove(bytes memory name) public virtual override returns (uint256) {
+    function remove(bytes memory name)
+        public
+        virtual
+        override
+        returns (uint256)
+    {
         require(msg.sender == owner, "must from owner");
         return _remove(keccak256(name));
     }
