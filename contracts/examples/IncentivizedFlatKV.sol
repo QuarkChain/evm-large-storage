@@ -11,11 +11,11 @@ contract IncentivizedFlatKV is FlatDirectory{
         _;
     }
 
-    function changeOperator(address _operator) public onlyOperatorOrOwner virtual {
+    function changeOperator(address _operator) public virtual onlyOperatorOrOwner{
         operator = _operator;
     }
 
-    function setDefault(bytes memory _defaultFile) public onlyOperatorOrOwner override virtual{
+    function setDefault(bytes memory _defaultFile) public override virtual onlyOperatorOrOwner{
         defaultFile = _defaultFile;
     }
 
