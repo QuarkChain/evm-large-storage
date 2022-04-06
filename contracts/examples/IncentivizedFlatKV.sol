@@ -7,7 +7,7 @@ contract IncentivizedFlatKV is FlatDirectory{
     constructor(uint8 slotLimit) FlatDirectory(slotLimit) {}
 
      modifier onlyOperatorOrOwner(){
-        require(operator == msg.sender || owner == msg.sender,"must from owner or opetator");
+        require(operator == msg.sender || owner == msg.sender,"must from owner or operator");
         _;
     }
 
