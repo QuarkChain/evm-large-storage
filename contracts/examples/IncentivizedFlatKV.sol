@@ -50,11 +50,4 @@ contract IncentivizedFlatKV is FlatDirectory{
         return _removeChunk(keccak256(name), chunkId);
     }
 
-
-    /*
-    owner() returns (address). This returns the address of the owner. The owner can do anything on the contract even including self-destruct, withdraw funds, and changeOperator(). In our incentivized program, the owner is our owned address.
-    changeOwner(address). This changes the owner. Can be called only by the previous owner.
-    operator() returns (address). This returns the address of the operator. The operator can read/write/remove the content of the directory. However, it cannot withdraw any token from the contract (including self-destruct).
-    changeOperator(address). Can be called by both owner and operator.
-    */
 }
