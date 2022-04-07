@@ -188,5 +188,8 @@ library StorageHelper {
         return (datalen + STORAGE_SLOT_CODE.length - 1) / chunkSize * codeStakingPerChunk ;
     }
 
+    function storageSlotCodeLength()internal pure returns(uint256){
+        return STORAGE_SLOT_CODE.length;
+    }
 
 }
