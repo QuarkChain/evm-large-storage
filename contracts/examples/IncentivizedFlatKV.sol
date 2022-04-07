@@ -2,20 +2,44 @@
 pragma solidity ^0.8.0;
 
 import "./FlatDirectory.sol";
-contract IncentivizedFlatKV is FlatDirectory{
-    address public operator;
-    constructor(uint8 slotLimit) FlatDirectory(slotLimit) {}
 
-     modifier onlyOperatorOrOwner(){
-        require(operator == msg.sender || owner == msg.sender,"must from owner or operator");
+contract IncentivizedFlatKV is FlatDirectory {
+    address public operator;
+
+    uint256 public immutable perChunkSize;
+    uint256 public immutable codeStakingPerChunk;
+
+    constructor(
+        uint8 slotLimit,
+        uint256 _perChunkSize,
+        uint256 _codeStakingPerChunk
+    ) payable FlatDirectory(slotLimit) {
+        perChunkSize = _perChunkSize;
+        codeStakingPerChunk = _codeStakingPerChunk;
+    }
+
+    modifier onlyOperatorOrOwner() {
+        require(
+            operator == msg.sender || owner == msg.sender,
+            "must from owner or operator"
+        );
         _;
     }
 
-    function changeOperator(address _operator) public virtual onlyOperatorOrOwner{
+    function changeOperator(address _operator)
+        public
+        virtual
+        onlyOperatorOrOwner
+    {
         operator = _operator;
     }
 
-    function setDefault(bytes memory _defaultFile) public override virtual onlyOperatorOrOwner{
+    function setDefault(bytes memory _defaultFile)
+        public
+        virtual
+        override
+        onlyOperatorOrOwner
+    {
         defaultFile = _defaultFile;
     }
 
@@ -25,11 +49,25 @@ contract IncentivizedFlatKV is FlatDirectory{
         override
         onlyOperatorOrOwner
     {
-        return _putChunk(keccak256(name), 0, data, msg.value);
+        return
+            _putChunk(
+                keccak256(name),
+                0,
+                data,
+                StorageHelper.calValueForData(
+                    data.length,
+                    perChunkSize,
+                    codeStakingPerChunk
+                )
+            );
     }
 
-    function remove(bytes memory name) public override onlyOperatorOrOwner returns (uint256) {
-        require(msg.sender == owner, "must from owner");
+    function remove(bytes memory name)
+        public
+        override
+        onlyOperatorOrOwner
+        returns (uint256)
+    {
         return _remove(keccak256(name));
     }
 
@@ -37,8 +75,18 @@ contract IncentivizedFlatKV is FlatDirectory{
         bytes memory name,
         uint256 chunkId,
         bytes memory data
-    ) public payable override onlyOperatorOrOwner{
-        return _putChunk(keccak256(name), chunkId, data, msg.value);
+    ) public payable override onlyOperatorOrOwner {
+        return
+            _putChunk(
+                keccak256(name),
+                chunkId,
+                data,
+                StorageHelper.calValueForData(
+                    data.length,
+                    perChunkSize,
+                    codeStakingPerChunk
+                )
+            );
     }
 
     function removeChunk(bytes memory name, uint256 chunkId)
@@ -50,4 +98,16 @@ contract IncentivizedFlatKV is FlatDirectory{
         return _removeChunk(keccak256(name), chunkId);
     }
 
+    function calValueForData(uint256 datalen) public view returns (uint256) {
+        return
+            StorageHelper.calValueForData(
+                datalen,
+                perChunkSize,
+                codeStakingPerChunk
+            );
+    }
+
+    function storageSlotCodeLength() public pure returns (uint256) {
+        return StorageHelper.storageSlotCodeLength();
+    }
 }
