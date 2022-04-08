@@ -54,7 +54,7 @@ contract IncentivizedFlatDirectory is FlatDirectory {
                 keccak256(name),
                 0,
                 data,
-                StorageHelper.calValueForData(
+                StorageHelper.calculateValueForData(
                     data.length,
                     perChunkSize,
                     codeStakingPerChunk
@@ -81,7 +81,7 @@ contract IncentivizedFlatDirectory is FlatDirectory {
                 keccak256(name),
                 chunkId,
                 data,
-                StorageHelper.calValueForData(
+                StorageHelper.calculateValueForData(
                     data.length,
                     perChunkSize,
                     codeStakingPerChunk
@@ -98,9 +98,9 @@ contract IncentivizedFlatDirectory is FlatDirectory {
         return _removeChunk(keccak256(name), chunkId);
     }
 
-    function calValueForData(uint256 datalen) public view returns (uint256) {
+    function calculateValueForData(uint256 datalen) public view returns (uint256) {
         return
-            StorageHelper.calValueForData(
+            StorageHelper.calculateValueForData(
                 datalen,
                 perChunkSize,
                 codeStakingPerChunk
