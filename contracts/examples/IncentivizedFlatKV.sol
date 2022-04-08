@@ -10,10 +10,10 @@ contract IncentivizedFlatDirectory is FlatDirectory {
     uint256 public immutable codeStakingPerChunk;
 
     constructor(
-        uint8 slotLimit,
+        uint8 _slotLimit,
         uint256 _perChunkSize,
         uint256 _codeStakingPerChunk
-    ) payable FlatDirectory(slotLimit) {
+    ) payable FlatDirectory(_slotLimit) {
         perChunkSize = _perChunkSize;
         codeStakingPerChunk = _codeStakingPerChunk;
     }
