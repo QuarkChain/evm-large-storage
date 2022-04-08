@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./FlatDirectory.sol";
 
-contract IncentivizedFlatKV is FlatDirectory {
+contract IncentivizedFlatDirectory is FlatDirectory {
     address public operator;
 
     uint256 public immutable perChunkSize;
