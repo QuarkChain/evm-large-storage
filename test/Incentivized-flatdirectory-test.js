@@ -136,26 +136,6 @@ describe("IncentivizedFlatKV Test", function () {
     expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
   })
 
-  it("writeChunk and removeChunk test",async function(){
-    let totalTokenConsumed = BigNumber.from(0);
-
-    // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
-    // set operator
-    await OPFlatDirectory.changeOperator(operator.address)
-
-    // need stake one eth 
-    let data0 = Array.from({ length: ChunkSize }, () =>
-      Math.floor(Math.random() * 256)
-    );
-    await OPFlatDirectory.connect(operator).writeChunk("0x01", 0, data0)
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
-    totalTokenConsumed = totalTokenConsumed.add(ETH);
-
-    await OPFlatDirectory.connect(operator).removeChunk( "0x01", 0)
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
-  })
-
   it("refund with different permissions test",async function(){
     // verify FaatDirectory contract balance
     expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
@@ -168,7 +148,6 @@ describe("IncentivizedFlatKV Test", function () {
     // refund succeed
     await OPFlatDirectory.connect(owner).refund()
   })
-
 
   it("destruct with different permissions test",async function(){
     // verify FaatDirectory contract balance
