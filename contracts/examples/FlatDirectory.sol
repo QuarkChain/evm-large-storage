@@ -46,8 +46,4 @@ contract FlatDirectory is W3RC3 {
         require(msg.sender == owner, "must from owner");
         selfdestruct(payable(owner));
     }
-
-    function balanceOf(address addr)public view returns(uint256){
-        return addr.balance;
-    }
 }
