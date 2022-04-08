@@ -15,7 +15,7 @@ describe("IncentivizedFlatKV Test", function () {
   let sendedEth;
   beforeEach(async () => {
     [owner,operator,user] = await ethers.getSigners();
-    factory = await ethers.getContractFactory("IncentivizedFlatKV");
+    factory = await ethers.getContractFactory("IncentivizedFlatDirectory");
     sendedEth = BigNumber.from(10).pow(BigNumber.from(19));
     OPFlatDirectory = await factory.deploy(220,ChunkSize,CodeStakingPerChunk,{value: sendedEth});
     await OPFlatDirectory.deployed();
@@ -63,7 +63,7 @@ describe("IncentivizedFlatKV Test", function () {
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
     // set operator
     await OPFlatDirectory.changeOperator(operator.address)
 
@@ -72,7 +72,7 @@ describe("IncentivizedFlatKV Test", function () {
       Math.floor(Math.random() * 256)
     );
     await OPFlatDirectory.connect(operator).write("0x01",data0)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    expect(await  ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
     // need stake two eth 
@@ -80,12 +80,12 @@ describe("IncentivizedFlatKV Test", function () {
       Math.floor(Math.random() * 256)
     );
     await OPFlatDirectory.connect(operator).write("0x02",data1)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH.mul(2)).sub(totalTokenConsumed))
+    expect(await  ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH.mul(2)).sub(totalTokenConsumed))
     totalTokenConsumed = totalTokenConsumed.add(ETH.mul(2))
 
     // do not need stake 
     let storageSlotCodeLen = await OPFlatDirectory.storageSlotCodeLength();
-    let v = await OPFlatDirectory.calValueForData(ChunkSize.sub(storageSlotCodeLen))
+    let v = await OPFlatDirectory.calculateValueForData(ChunkSize.sub(storageSlotCodeLen))
     console.log("need value",v.toString())
     expect(v).to.eq(BigNumber.from(0))
 
@@ -93,14 +93,14 @@ describe("IncentivizedFlatKV Test", function () {
       Math.floor(Math.random() * 256)
     );
     await OPFlatDirectory.connect(operator).write("0x03",data2)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth.sub(totalTokenConsumed))
+    expect(await  ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(totalTokenConsumed))
   })
 
   it("write and remove test",async function(){
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
     // set operator
     await OPFlatDirectory.changeOperator(operator.address)
 
@@ -109,18 +109,18 @@ describe("IncentivizedFlatKV Test", function () {
       Math.floor(Math.random() * 256)
     );
     await OPFlatDirectory.connect(operator).write("0x01",data0)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
     await OPFlatDirectory.connect(operator).remove("0x01")
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
   })
 
   it("writeChunk and removeChunk test",async function(){
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
     // set operator
     await OPFlatDirectory.changeOperator(operator.address)
 
@@ -129,18 +129,18 @@ describe("IncentivizedFlatKV Test", function () {
       Math.floor(Math.random() * 256)
     );
     await OPFlatDirectory.connect(operator).writeChunk("0x01", 0, data0)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
     await OPFlatDirectory.connect(operator).removeChunk( "0x01", 0)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
   })
 
   it("writeChunk and removeChunk test",async function(){
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
     // set operator
     await OPFlatDirectory.changeOperator(operator.address)
 
@@ -149,16 +149,16 @@ describe("IncentivizedFlatKV Test", function () {
       Math.floor(Math.random() * 256)
     );
     await OPFlatDirectory.connect(operator).writeChunk("0x01", 0, data0)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
     await OPFlatDirectory.connect(operator).removeChunk( "0x01", 0)
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
   })
 
   it("refund with different permissions test",async function(){
     // verify FaatDirectory contract balance
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
     // set operator
     await OPFlatDirectory.changeOperator(operator.address)
 
@@ -172,7 +172,7 @@ describe("IncentivizedFlatKV Test", function () {
 
   it("destruct with different permissions test",async function(){
     // verify FaatDirectory contract balance
-    expect(await OPFlatDirectory.balanceOf(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
     // set operator
     await OPFlatDirectory.changeOperator(operator.address)
 
