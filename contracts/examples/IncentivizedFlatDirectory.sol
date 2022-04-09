@@ -6,17 +6,12 @@ import "./FlatDirectory.sol";
 contract IncentivizedFlatDirectory is FlatDirectory {
     address public operator;
 
-    uint256 public immutable perChunkSize;
-    uint256 public immutable codeStakingPerChunk;
+    uint256 public constant PER_CHUNK_SIZE = 24 * 1024;
+    uint256 public constant CODE_STAKING_PER_CHUNK = 10 ** 18;
 
     constructor(
-        uint8 _slotLimit,
-        uint256 _perChunkSize,
-        uint256 _codeStakingPerChunk
-    ) payable FlatDirectory(_slotLimit) {
-        perChunkSize = _perChunkSize;
-        codeStakingPerChunk = _codeStakingPerChunk;
-    }
+        uint8 _slotLimit
+    ) payable FlatDirectory(_slotLimit) {}
 
     modifier onlyOperatorOrOwner() {
         require(
@@ -56,8 +51,8 @@ contract IncentivizedFlatDirectory is FlatDirectory {
                 data,
                 StorageHelper.calculateValueForData(
                     data.length,
-                    perChunkSize,
-                    codeStakingPerChunk
+                    PER_CHUNK_SIZE,
+                    CODE_STAKING_PER_CHUNK
                 )
             );
     }
@@ -83,8 +78,8 @@ contract IncentivizedFlatDirectory is FlatDirectory {
                 data,
                 StorageHelper.calculateValueForData(
                     data.length,
-                    perChunkSize,
-                    codeStakingPerChunk
+                    PER_CHUNK_SIZE,
+                    CODE_STAKING_PER_CHUNK
                 )
             );
     }
@@ -98,12 +93,12 @@ contract IncentivizedFlatDirectory is FlatDirectory {
         return _removeChunk(keccak256(name), chunkId);
     }
 
-    function calculateValueForData(uint256 datalen) public view returns (uint256) {
+    function calculateValueForData(uint256 datalen) public pure returns (uint256) {
         return
             StorageHelper.calculateValueForData(
                 datalen,
-                perChunkSize,
-                codeStakingPerChunk
+                PER_CHUNK_SIZE,
+                CODE_STAKING_PER_CHUNK
             );
     }
 
