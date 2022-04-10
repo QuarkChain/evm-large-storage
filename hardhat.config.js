@@ -57,7 +57,7 @@ module.exports = {
     w3qGalileo: {
       url: process.env.W3QGALILEO_URL || "",
       accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY,process.env.PRIVATE_KEY2,process.env.PRIVATE_KEY3] : [],
     },
   },
   gasReporter: {
