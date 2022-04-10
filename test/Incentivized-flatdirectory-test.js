@@ -4,11 +4,11 @@ const { ethers } = require("hardhat");
 const {writeChunkTest,writeTest,removeTest,removeChunkTest,readTest} = require("./shared/utils");
 
 let ETH = BigNumber.from(10).pow(18)
-let ChunkSize = BigNumber.from(1024)
+let ChunkSize = BigNumber.from(1024).mul(BigNumber.from(24))
 let CodeStakingPerChunk = BigNumber.from(10).pow(BigNumber.from(18))
 
-describe("IncentivizedFlatKV Test", function () {
-  let OPFlatDirectory;
+describe("IncentivizedFlatDirectory Test", function () {
+  let fd;
   let owner;
   let operator;
   let user;
@@ -17,8 +17,10 @@ describe("IncentivizedFlatKV Test", function () {
     [owner,operator,user] = await ethers.getSigners();
     factory = await ethers.getContractFactory("IncentivizedFlatDirectory");
     sendedEth = BigNumber.from(10).pow(BigNumber.from(19));
-    OPFlatDirectory = await factory.deploy(220,ChunkSize,CodeStakingPerChunk,{value: sendedEth});
-    await OPFlatDirectory.deployed();
+    let _nonce = await ethers.getTransactionCount(owner.address)
+    fd = await factory.connect(owner).deploy(220,{nonce:_nonce+1,value:sendedEth,maxPriorityFeePerGas:BigNumber.from(50*10**9),maxFeePerGas:BigNumber.from(100*10**9)});
+    console.log( fd.deployTransaction)
+    await fd.deployed();
   });
 
   it("permission transfer test", async function () {
@@ -161,7 +163,5 @@ describe("IncentivizedFlatKV Test", function () {
     // refund succeed
     await OPFlatDirectory.connect(owner).destruct()
   })
-
-
 
 });
