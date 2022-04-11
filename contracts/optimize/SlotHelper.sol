@@ -6,10 +6,7 @@ library SlotHelper {
     uint256 internal constant LEN_OFFSET = 224;
     uint256 internal constant FIRST_SLOT_DATA_SIZE = 28;
 
-    function putRaw(
-        mapping(uint256 => bytes32) storage slots,
-        bytes memory datas
-    ) internal returns (bytes32 mdata) {
+    function putRaw(mapping(uint256 => bytes32) storage slots, bytes memory datas) internal returns (bytes32 mdata) {
         uint256 len = datas.length;
         mdata = encodeMetadata(datas);
         if (len > FIRST_SLOT_DATA_SIZE) {
@@ -18,11 +15,7 @@ library SlotHelper {
             assembly {
                 ptr := add(datas, add(0x20, FIRST_SLOT_DATA_SIZE))
             }
-            for (
-                uint256 i = 0;
-                i < (len - FIRST_SLOT_DATA_SIZE + 32 - 1) / 32;
-                i++
-            ) {
+            for (uint256 i = 0; i < (len - FIRST_SLOT_DATA_SIZE + 32 - 1) / 32; i++) {
                 assembly {
                     value := mload(ptr)
                 }
@@ -32,11 +25,7 @@ library SlotHelper {
         }
     }
 
-    function encodeMetadata(bytes memory data)
-        internal
-        pure
-        returns (bytes32 medata)
-    {
+    function encodeMetadata(bytes memory data) internal pure returns (bytes32 medata) {
         uint256 datLen = data.length;
         uint256 value;
         assembly {
@@ -49,20 +38,12 @@ library SlotHelper {
         medata = bytes32(value | datLen);
     }
 
-    function decodeMetadata(bytes32 mdata)
-        internal
-        pure
-        returns (uint256 len, bytes32 data)
-    {
+    function decodeMetadata(bytes32 mdata) internal pure returns (uint256 len, bytes32 data) {
         len = decodeLen(mdata);
         data = mdata << SLOTDATA_RIGHT_SHIFT;
     }
 
-    function decodeMetadataToData(bytes32 mdata)
-        internal
-        pure
-        returns (uint256 len, bytes memory data)
-    {
+    function decodeMetadataToData(bytes32 mdata) internal pure returns (uint256 len, bytes memory data) {
         len = decodeLen(mdata);
         mdata = mdata << SLOTDATA_RIGHT_SHIFT;
         data = new bytes(len);
@@ -85,11 +66,7 @@ library SlotHelper {
             assembly {
                 ptr := add(data, add(0x20, FIRST_SLOT_DATA_SIZE))
             }
-            for (
-                uint256 i = 0;
-                i < (datalen - FIRST_SLOT_DATA_SIZE + 32 - 1) / 32;
-                i++
-            ) {
+            for (uint256 i = 0; i < (datalen - FIRST_SLOT_DATA_SIZE + 32 - 1) / 32; i++) {
                 value = slots[i];
                 assembly {
                     mstore(ptr, value)
@@ -106,7 +83,7 @@ library SlotHelper {
     ) internal view returns (uint256 datalen, bool found) {
         bytes32 datapart;
         (datalen, datapart) = decodeMetadata(mdata);
-        
+
         // memoryPtr:memoryPtr+32 is allocated for the data
         uint256 dataPtr = memoryPtr;
         assembly {
@@ -120,11 +97,7 @@ library SlotHelper {
             assembly {
                 ptr := add(dataPtr, FIRST_SLOT_DATA_SIZE)
             }
-            for (
-                uint256 i = 0;
-                i < (datalen - FIRST_SLOT_DATA_SIZE + 32 - 1) / 32;
-                i++
-            ) {
+            for (uint256 i = 0; i < (datalen - FIRST_SLOT_DATA_SIZE + 32 - 1) / 32; i++) {
                 value = slots[i];
                 assembly {
                     mstore(ptr, value)

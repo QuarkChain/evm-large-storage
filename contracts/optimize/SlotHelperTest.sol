@@ -20,19 +20,11 @@ contract SlotHelperTest {
         return SlotHelper.encodeMetadata(data);
     }
 
-    function decodeMetadata(bytes32 mdata)
-        public
-        pure
-        returns (uint256, bytes32)
-    {
+    function decodeMetadata(bytes32 mdata) public pure returns (uint256, bytes32) {
         return SlotHelper.decodeMetadata(mdata);
     }
 
-    function decodeMetadata1(bytes32 mdata)
-        public
-        pure
-        returns (uint256, bytes memory)
-    {
+    function decodeMetadata1(bytes32 mdata) public pure returns (uint256, bytes memory) {
         return SlotHelper.decodeMetadataToData(mdata);
     }
 
