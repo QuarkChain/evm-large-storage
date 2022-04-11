@@ -6,6 +6,7 @@ const {writeChunkTest,writeTest,removeTest,removeChunkTest,readTest} = require("
 let ETH = BigNumber.from(10).pow(18)
 let ChunkSize = BigNumber.from(1024).mul(BigNumber.from(24))
 let CodeStakingPerChunk = BigNumber.from(10).pow(BigNumber.from(18))
+let overrideData = {maxPriorityFeePerGas:BigNumber.from(16*10**9),maxFeePerGas:BigNumber.from(31*10**9)}
 
 describe("IncentivizedFlatDirectory Test", function () {
   let fd;
@@ -13,51 +14,59 @@ describe("IncentivizedFlatDirectory Test", function () {
   let operator;
   let user;
   let sendedEth;
+
   beforeEach(async () => {
     [owner,operator,user] = await ethers.getSigners();
     factory = await ethers.getContractFactory("IncentivizedFlatDirectory");
-    sendedEth = BigNumber.from(10).pow(BigNumber.from(19));
-    let _nonce = await ethers.getTransactionCount(owner.address)
-    fd = await factory.connect(owner).deploy(220,{nonce:_nonce+1,value:sendedEth,maxPriorityFeePerGas:BigNumber.from(50*10**9),maxFeePerGas:BigNumber.from(100*10**9)});
-    console.log( fd.deployTransaction)
+    sendedEth = BigNumber.from(4).mul(CodeStakingPerChunk);
+    let _nonce = await ethers.provider.getTransactionCount(owner.address)
+    fd = await factory.connect(owner).deploy(220,{nonce:_nonce,value:sendedEth,maxPriorityFeePerGas:BigNumber.from(15*10**9),maxFeePerGas:BigNumber.from(30*10**9)});
+    // console.log( fd.deployTransaction)
     await fd.deployed();
   });
 
   it("permission transfer test", async function () {
-    expect(await OPFlatDirectory.owner()).to.eq(owner.address);
-    await OPFlatDirectory.changeOperator(operator.address); 
-    expect(await OPFlatDirectory.operator()).to.eq(operator.address);
+    expect(await fd.owner()).to.eq(owner.address);
 
-    await expect(OPFlatDirectory.connect(operator).changeOwner(operator.address)).to.be.reverted
-    await expect(OPFlatDirectory.connect(user.address).changeOperator(operator.address)).to.be.reverted
+    let tx = await fd.changeOperator
+    (
+      operator.address,
+      overrideData
+    ); 
+    // console.log(tx)
+    await tx.wait()
+    expect(await fd.operator()).to.eq(operator.address);
 
-    await OPFlatDirectory.connect(operator).changeOperator(user.address)
-    expect(await OPFlatDirectory.operator()).to.eq(user.address)
+    await expect(fd.connect(operator).changeOwner(operator.address,overrideData)).to.be.reverted
+    await expect(fd.connect(user.address).changeOperator(operator.address,overrideData)).to.be.reverted
+
+    await fd.connect(operator).changeOperator(user.address,overrideData)
+    expect(await fd.operator()).to.eq(user.address)
     
-    await expect(OPFlatDirectory.connect(operator.address).changeOwner(user.address)).to.be.reverted
+    await expect(fd.connect(operator.address).changeOwner(user.address,overrideData)).to.be.reverted
   });
 
   it("operator with different permissions test", async function () {
-    expect(await OPFlatDirectory.owner()).to.eq(owner.address);
-    await OPFlatDirectory.changeOperator(operator.address); 
-    expect(await OPFlatDirectory.operator()).to.eq(operator.address);
+    expect(await fd.owner()).to.eq(owner.address);
+    await fd.changeOperator(operator.address,overrideData); 
+    expect(await fd.operator()).to.eq(operator.address);
     
     // expect write revert
-    await expect(writeTest(OPFlatDirectory.connect(user), "0x01", 100, 1)).to.be.reverted;
-    await expect(writeChunkTest(OPFlatDirectory.connect(user), "0x01", 0, 1000, 1)).to.be.reverted;
+    await expect(writeTest(fd.connect(user), "0x01", 100, 1)).to.be.reverted;
+    await expect(writeChunkTest(fd.connect(user), "0x01", 0, 1000, 1)).to.be.reverted;
 
     // expect write succeed
-    await writeTest(OPFlatDirectory.connect(owner), "0x01", 100, 1)
-    await writeChunkTest(OPFlatDirectory.connect(owner), "0x01", 1, 1000, 1)
+    await writeTest(fd.connect(owner), "0x01", 100, 1)
+    await writeChunkTest(fd.connect(owner), "0x01", 1, 1000, 1)
 
     // expect remove revert
-    await expect(removeTest(OPFlatDirectory.connect(user), "0x01")).to.be.reverted;
-    await expect(removeChunkTest(OPFlatDirectory.connect(user), "0x01",0)).to.be.reverted;
+    await expect(removeTest(fd.connect(user), "0x01")).to.be.reverted;
+    await expect(removeChunkTest(fd.connect(user), "0x01",0)).to.be.reverted;
 
     // expect remove succeed
-    await removeChunkTest(OPFlatDirectory.connect(owner), "0x01",1)
-    await removeTest(OPFlatDirectory.connect(owner), "0x01")
-    await readTest(OPFlatDirectory.connect(user), "0x01",0,0,0,0,0,0)
+    await removeChunkTest(fd.connect(owner), "0x01",1)
+    await removeTest(fd.connect(owner), "0x01")
+    await readTest(fd.connect(user), "0x01",0,0,0,0,0,0)
 
   });
 
@@ -65,103 +74,111 @@ describe("IncentivizedFlatDirectory Test", function () {
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
     // set operator
-    await OPFlatDirectory.changeOperator(operator.address)
+    await fd.changeOperator(operator.address,overrideData)
 
     // need stake one eth 
     let data0 = Array.from({ length: ChunkSize }, () =>
       Math.floor(Math.random() * 256)
     );
-    await OPFlatDirectory.connect(operator).write("0x01",data0)
-    expect(await  ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    let tx = await fd.connect(operator).write("0x01",data0,overrideData)
+    await tx.wait()
+    expect(await  ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
     // need stake two eth 
     let data1 = Array.from({ length: ChunkSize * 2}, () =>
       Math.floor(Math.random() * 256)
     );
-    await OPFlatDirectory.connect(operator).write("0x02",data1)
-    expect(await  ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH.mul(2)).sub(totalTokenConsumed))
+    tx = await fd.connect(operator).write("0x02",data1,overrideData)
+    await tx.wait()
+    expect(await  ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH.mul(2)).sub(totalTokenConsumed))
     totalTokenConsumed = totalTokenConsumed.add(ETH.mul(2))
 
     // do not need stake 
-    let storageSlotCodeLen = await OPFlatDirectory.storageSlotCodeLength();
-    let v = await OPFlatDirectory.calculateValueForData(ChunkSize.sub(storageSlotCodeLen))
+    let storageSlotCodeLen = await fd.storageSlotCodeLength();
+    let v = await fd.calculateValueForData(ChunkSize.sub(storageSlotCodeLen))
     console.log("need value",v.toString())
     expect(v).to.eq(BigNumber.from(0))
 
     let data2 = Array.from({ length: ChunkSize.sub(storageSlotCodeLen) }, () =>
       Math.floor(Math.random() * 256)
     );
-    await OPFlatDirectory.connect(operator).write("0x03",data2)
-    expect(await  ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(totalTokenConsumed))
+    tx = await fd.connect(operator).write("0x03",data2,overrideData)
+    await tx.wait()
+    expect(await  ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(totalTokenConsumed))
   })
 
   it("write and remove test",async function(){
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
     // set operator
-    await OPFlatDirectory.changeOperator(operator.address)
+    let tx = await fd.changeOperator(operator.address,overrideData)
+    await tx.wait()
 
     // need stake one eth 
     let data0 = Array.from({ length: ChunkSize }, () =>
       Math.floor(Math.random() * 256)
     );
-    await OPFlatDirectory.connect(operator).write("0x01",data0)
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    tx = await fd.connect(operator).write("0x01",data0,overrideData)
+    await tx.wait()
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
-    await OPFlatDirectory.connect(operator).remove("0x01")
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    tx = await fd.connect(operator).remove("0x01",overrideData)
+    await tx.wait()
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
   })
 
   it("writeChunk and removeChunk test",async function(){
     let totalTokenConsumed = BigNumber.from(0);
 
     // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
     // set operator
-    await OPFlatDirectory.changeOperator(operator.address)
+    await fd.changeOperator(operator.address,overrideData)
 
     // need stake one eth 
     let data0 = Array.from({ length: ChunkSize }, () =>
       Math.floor(Math.random() * 256)
     );
-    await OPFlatDirectory.connect(operator).writeChunk("0x01", 0, data0)
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth.sub(ETH))
+    let tx = await fd.connect(operator).writeChunk("0x01", 0, data0,overrideData)
+    await tx.wait()
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH))
     totalTokenConsumed = totalTokenConsumed.add(ETH);
 
-    await OPFlatDirectory.connect(operator).removeChunk( "0x01", 0)
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    tx = await fd.connect(operator).removeChunk( "0x01", 0,overrideData)
+    await tx.wait()
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
   })
 
   it("refund with different permissions test",async function(){
     // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
     // set operator
-    await OPFlatDirectory.changeOperator(operator.address)
+    await fd.changeOperator(operator.address,overrideData)
 
     // refund fail
-    await expect(OPFlatDirectory.connect(operator).refund()).to.be.reverted
+    await expect(fd.connect(operator).refund(overrideData)).to.be.reverted
 
     // refund succeed
-    await OPFlatDirectory.connect(owner).refund()
+    await fd.connect(owner).refund(overrideData)
   })
 
   it("destruct with different permissions test",async function(){
     // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(OPFlatDirectory.address)).to.eq(sendedEth)
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth)
     // set operator
-    await OPFlatDirectory.changeOperator(operator.address)
+    await fd.changeOperator(operator.address,overrideData)
 
     // refund fail
-    await expect(OPFlatDirectory.connect(operator).destruct()).to.be.reverted
+    await expect(fd.connect(operator).destruct(overrideData)).to.be.reverted
 
     // refund succeed
-    await OPFlatDirectory.connect(owner).destruct()
+    await fd.connect(owner).destruct(overrideData)
   })
 
 });
