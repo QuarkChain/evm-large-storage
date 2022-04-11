@@ -13,8 +13,7 @@ contract LargeStorageManager {
     uint8 internal immutable SLOT_LIMIT;
 
     mapping(bytes32 => mapping(uint256 => bytes32)) internal keyToMetadata;
-    mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32)))
-        internal keyToSlots;
+    mapping(bytes32 => mapping(uint256 => mapping(uint256 => bytes32))) internal keyToSlots;
 
     constructor(uint8 slotLimit) {
         SLOT_LIMIT = slotLimit;
@@ -24,19 +23,11 @@ contract LargeStorageManager {
         return SLOT_LIMIT > 0;
     }
 
-    function _putChunk(
-        bytes32 key,
-        uint256 chunkId,
-        bytes memory data,
-        uint256 value
-    ) internal {
+    function _preparePut(bytes32 key, uint256 chunkId) private {
         bytes32 metadata = keyToMetadata[key][chunkId];
 
         if (metadata == bytes32(0)) {
-            require(
-                chunkId == 0 || keyToMetadata[key][chunkId - 1] != bytes32(0x0),
-                "must replace or append"
-            );
+            require(chunkId == 0 || keyToMetadata[key][chunkId - 1] != bytes32(0x0), "must replace or append");
         }
 
         if (!metadata.isInSlot()) {
@@ -46,32 +37,45 @@ contract LargeStorageManager {
                 StorageSlotSelfDestructable(addr).destruct();
             }
         }
+    }
+
+    function _putChunkFromCalldata(
+        bytes32 key,
+        uint256 chunkId,
+        bytes calldata data,
+        uint256 value
+    ) internal {
+        _preparePut(key, chunkId);
 
         // store data and rewrite metadata
         if (data.length > SLOT_LIMIT) {
-            keyToMetadata[key][chunkId] = StorageHelper
-                .putRaw(data, value)
-                .addrToBytes32();
+            keyToMetadata[key][chunkId] = StorageHelper.putRawFromCalldata(data, value).addrToBytes32();
         } else {
-            keyToMetadata[key][chunkId] = SlotHelper.putRaw(
-                keyToSlots[key][chunkId],
-                data
-            );
+            keyToMetadata[key][chunkId] = SlotHelper.putRaw(keyToSlots[key][chunkId], data);
         }
     }
 
-    function _getChunk(bytes32 key, uint256 chunkId)
-        internal
-        view
-        returns (bytes memory, bool)
-    {
+    function _putChunk(
+        bytes32 key,
+        uint256 chunkId,
+        bytes memory data,
+        uint256 value
+    ) internal {
+        _preparePut(key, chunkId);
+
+        // store data and rewrite metadata
+        if (data.length > SLOT_LIMIT) {
+            keyToMetadata[key][chunkId] = StorageHelper.putRaw(data, value).addrToBytes32();
+        } else {
+            keyToMetadata[key][chunkId] = SlotHelper.putRaw(keyToSlots[key][chunkId], data);
+        }
+    }
+
+    function _getChunk(bytes32 key, uint256 chunkId) internal view returns (bytes memory, bool) {
         bytes32 metadata = keyToMetadata[key][chunkId];
 
         if (metadata.isInSlot()) {
-            bytes memory res = SlotHelper.getRaw(
-                keyToSlots[key][chunkId],
-                metadata
-            );
+            bytes memory res = SlotHelper.getRaw(keyToSlots[key][chunkId], metadata);
             return (res, true);
         } else {
             address addr = metadata.bytes32ToAddr();
@@ -79,11 +83,7 @@ contract LargeStorageManager {
         }
     }
 
-    function _chunkSize(bytes32 key, uint256 chunkId)
-        internal
-        view
-        returns (uint256, bool)
-    {
+    function _chunkSize(bytes32 key, uint256 chunkId) internal view returns (uint256, bool) {
         bytes32 metadata = keyToMetadata[key][chunkId];
 
         if (metadata == bytes32(0)) {
@@ -147,11 +147,7 @@ contract LargeStorageManager {
             uint256 chunkSize = 0;
             if (metadata.isInSlot()) {
                 chunkSize = metadata.decodeLen();
-                SlotHelper.getRawAt(
-                    keyToSlots[key][chunkId],
-                    metadata,
-                    dataPtr
-                );
+                SlotHelper.getRawAt(keyToSlots[key][chunkId], metadata, dataPtr);
             } else {
                 address addr = metadata.bytes32ToAddr();
                 (chunkSize, ) = StorageHelper.sizeRaw(addr);
@@ -188,10 +184,7 @@ contract LargeStorageManager {
         return chunkId;
     }
 
-    function _removeChunk(bytes32 key, uint256 chunkId)
-        internal
-        returns (bool)
-    {
+    function _removeChunk(bytes32 key, uint256 chunkId) internal returns (bool) {
         bytes32 metadata = keyToMetadata[key][chunkId];
         if (metadata == bytes32(0x0)) {
             return false;

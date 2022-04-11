@@ -41,9 +41,7 @@ contract StorageManager {
 
         if (data.length > SLOT_LIMIT) {
             // store in new contract
-            keyToMetadata[key] = StorageHelper
-                .putRaw(data, value)
-                .addrToBytes32();
+            keyToMetadata[key] = StorageHelper.putRaw(data, value).addrToBytes32();
         } else {
             // store in slot
             keyToMetadata[key] = SlotHelper.putRaw(keyToSlots[key], data);
@@ -64,9 +62,7 @@ contract StorageManager {
 
         if (data.length > SLOT_LIMIT) {
             // store in new contract
-            keyToMetadata[key] = StorageHelper
-                .putRaw2(key, data, value)
-                .addrToBytes32();
+            keyToMetadata[key] = StorageHelper.putRaw2(key, data, value).addrToBytes32();
         } else {
             // store in slot
             keyToMetadata[key] = SlotHelper.putRaw(keyToSlots[key], data);

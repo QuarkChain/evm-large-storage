@@ -131,11 +131,7 @@ library Memory {
 
     // This function does the same as 'dataPtr(bytes memory)', but will also return the
     // length of the provided bytes array.
-    function fromBytes(bytes memory bts)
-        internal
-        pure
-        returns (uint256 addr, uint256 len)
-    {
+    function fromBytes(bytes memory bts) internal pure returns (uint256 addr, uint256 len) {
         len = bts.length;
         assembly {
             addr := add(
@@ -149,11 +145,7 @@ library Memory {
     // Creates a 'bytes memory' variable from the memory address 'addr', with the
     // length 'len'. The function will allocate new memory for the bytes array, and
     // the 'len bytes starting at 'addr' will be copied into that new memory.
-    function toBytes(uint256 addr, uint256 len)
-        internal
-        pure
-        returns (bytes memory bts)
-    {
+    function toBytes(uint256 addr, uint256 len) internal pure returns (bytes memory bts) {
         bts = new bytes(len);
         uint256 btsptr;
         assembly {
