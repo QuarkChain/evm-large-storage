@@ -16,6 +16,12 @@ contract IncentivizedFlatDirectory is FlatDirectory {
         _;
     }
 
+    receive() external payable {
+        if (msg.value > 0) {
+            require(msg.sender == owner, "only owner transfer token into contract");
+        }
+    }
+
     function changeOperator(address _operator) public virtual onlyOperatorOrOwner {
         operator = _operator;
     }
@@ -25,6 +31,7 @@ contract IncentivizedFlatDirectory is FlatDirectory {
     }
 
     function write(bytes memory name, bytes memory data) public payable override onlyOperatorOrOwner {
+        require(msg.value == 0, "msg.value must be 0");
         return
             _putChunk(
                 keccak256(name),
@@ -43,6 +50,7 @@ contract IncentivizedFlatDirectory is FlatDirectory {
         uint256 chunkId,
         bytes memory data
     ) public payable override onlyOperatorOrOwner {
+        require(msg.value == 0, "msg.value must be 0");
         return
             _putChunk(
                 keccak256(name),
