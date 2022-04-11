@@ -69,5 +69,6 @@ module.exports = {
   },
   mocha: {
     grep: process.env.MOCHA_GREP || "",
+    timeout: 80000,
   },
 };
