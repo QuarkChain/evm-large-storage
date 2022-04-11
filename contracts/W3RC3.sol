@@ -62,4 +62,15 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
         require(msg.sender == owner, "must from owner");
         return _removeChunk(keccak256(name), chunkId);
     }
+
+    function refund() public override {
+        require(msg.sender == owner, "must from owner");
+        payable(owner).transfer(address(this).balance);
+    }
+
+    function destruct() public override {
+        require(msg.sender == owner, "must from owner");
+        selfdestruct(payable(owner));
+    }
+
 }

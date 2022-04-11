@@ -36,14 +36,5 @@ contract FlatDirectory is W3RC3 {
         require(msg.sender == owner, "must from owner");
         defaultFile = _defaultFile;
     }
-
-    function refund() public {
-        require(msg.sender == owner, "must from owner");
-        payable(owner).transfer(address(this).balance);
-    }
-
-    function destruct() public {
-        require(msg.sender == owner, "must from owner");
-        selfdestruct(payable(owner));
-    }
+    
 }
