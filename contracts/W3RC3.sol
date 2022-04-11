@@ -44,10 +44,10 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function writeChunk(
         bytes memory name,
         uint256 chunkId,
-        bytes memory data
+        bytes calldata data
     ) public payable override {
         require(msg.sender == owner, "must from owner");
-        return _putChunk(keccak256(name), chunkId, data, msg.value);
+        return _putChunkFromCalldata(keccak256(name), chunkId, data, msg.value);
     }
 
     function readChunk(bytes memory name, uint256 chunkId) public view override returns (bytes memory, bool) {
