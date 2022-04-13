@@ -105,114 +105,114 @@ describe("IncentivizedFlatDirectory Test", function () {
     expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(totalTokenConsumed));
   });
 
-  // it("write and remove test", async function () {
-  //   let totalTokenConsumed = BigNumber.from(0);
+  it("write and remove test", async function () {
+    let totalTokenConsumed = BigNumber.from(0);
 
-  //   // verify FaatDirectory contract balance
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  //   // set operator
-  //   let tx = await fd.changeOperator(operator.address, overrideData);
-  //   await tx.wait();
+    // verify FaatDirectory contract balance
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+    // set operator
+    let tx = await fd.changeOperator(operator.address, overrideData);
+    await tx.wait();
 
-  //   // need stake one eth
-  //   let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
-  //   tx = await fd.connect(operator).write("0x01", data0, overrideData);
-  //   await tx.wait();
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
-  //   totalTokenConsumed = totalTokenConsumed.add(ETH);
+    // need stake one eth
+    let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
+    tx = await fd.connect(operator).write("0x01", data0, overrideData);
+    await tx.wait();
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
+    totalTokenConsumed = totalTokenConsumed.add(ETH);
 
-  //   tx = await fd.connect(operator).remove("0x01", overrideData);
-  //   await tx.wait();
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  // });
+    tx = await fd.connect(operator).remove("0x01", overrideData);
+    await tx.wait();
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+  });
 
-  // it("writeChunk and removeChunk test", async function () {
-  //   let totalTokenConsumed = BigNumber.from(0);
+  it("writeChunk and removeChunk test", async function () {
+    let totalTokenConsumed = BigNumber.from(0);
 
-  //   // verify FaatDirectory contract balance
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  //   // set operator
-  //   await fd.changeOperator(operator.address, overrideData);
+    // verify FaatDirectory contract balance
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+    // set operator
+    await fd.changeOperator(operator.address, overrideData);
 
-  //   // need stake one eth
-  //   let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
-  //   let tx = await fd.connect(operator).writeChunk("0x01", 0, data0, overrideData);
-  //   await tx.wait();
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
-  //   totalTokenConsumed = totalTokenConsumed.add(ETH);
+    // need stake one eth
+    let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
+    let tx = await fd.connect(operator).writeChunk("0x01", 0, data0, overrideData);
+    await tx.wait();
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
+    totalTokenConsumed = totalTokenConsumed.add(ETH);
 
-  //   tx = await fd.connect(operator).removeChunk("0x01", 0, overrideData);
-  //   await tx.wait();
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  // });
+    tx = await fd.connect(operator).removeChunk("0x01", 0, overrideData);
+    await tx.wait();
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+  });
 
-  // it("refund with different permissions test", async function () {
-  //   // verify FaatDirectory contract balance
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  //   // set operator
-  //   await fd.changeOperator(operator.address, overrideData);
+  it("refund with different permissions test", async function () {
+    // verify FaatDirectory contract balance
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+    // set operator
+    await fd.changeOperator(operator.address, overrideData);
 
-  //   // refund fail
-  //   await expect(fd.connect(operator).refund(overrideData)).to.be.reverted;
+    // refund fail
+    await expect(fd.connect(operator).refund(overrideData)).to.be.reverted;
 
-  //   // refund succeed
-  //   await fd.connect(owner).refund(overrideData);
-  // });
+    // refund succeed
+    await fd.connect(owner).refund(overrideData);
+  });
 
-  // it("destruct with different permissions test", async function () {
-  //   // verify FaatDirectory contract balance
-  //   expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  //   // set operator
-  //   await fd.changeOperator(operator.address, overrideData);
+  it("destruct with different permissions test", async function () {
+    // verify FaatDirectory contract balance
+    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+    // set operator
+    await fd.changeOperator(operator.address, overrideData);
 
-  //   // refund fail
-  //   await expect(fd.connect(operator).destruct(overrideData)).to.be.reverted;
+    // refund fail
+    await expect(fd.connect(operator).destruct(overrideData)).to.be.reverted;
 
-  //   // refund succeed
-  //   await fd.connect(owner).destruct(overrideData);
-  // });
+    // refund succeed
+    await fd.connect(owner).destruct(overrideData);
+  });
 
-  // it("nonpayable test", async function () {
-  //   let data0 = Array.from({ length: 100 }, () => Math.floor(Math.random() * 256));
+  it("nonpayable test", async function () {
+    let data0 = Array.from({ length: 100 }, () => Math.floor(Math.random() * 256));
 
-  //   // expect failed when msg.value > 0
-  //   await expect(
-  //     fd
-  //       .connect(operator)
-  //       .writeChunk("0x01", 0, data0, {
-  //         value: ETH,
-  //         maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
-  //         maxFeePerGas: BigNumber.from(31 * 10 ** 9),
-  //       })
-  //   ).to.be.reverted;
-  //   await expect(
-  //     fd
-  //       .connect(operator)
-  //       .write("0x02", data0, {
-  //         value: ETH,
-  //         maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
-  //         maxFeePerGas: BigNumber.from(31 * 10 ** 9),
-  //       })
-  //   ).to.be.reverted;
+    // expect failed when msg.value > 0
+    await expect(
+      fd
+        .connect(operator)
+        .writeChunk("0x01", 0, data0, {
+          value: ETH,
+          maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
+          maxFeePerGas: BigNumber.from(31 * 10 ** 9),
+        })
+    ).to.be.reverted;
+    await expect(
+      fd
+        .connect(operator)
+        .write("0x02", data0, {
+          value: ETH,
+          maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
+          maxFeePerGas: BigNumber.from(31 * 10 ** 9),
+        })
+    ).to.be.reverted;
 
-  //   // only owner can send token to contract
-  //   await web3.eth.sendTransaction({
-  //     from: owner.address,
-  //     to: fd.address,
-  //     value: ETH,
-  //     maxFeePerGas: BigNumber.from(31 * 10 ** 9),
-  //     maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
-  //   });
+    // only owner can send token to contract
+    await web3.eth.sendTransaction({
+      from: owner.address,
+      to: fd.address,
+      value: ETH,
+      maxFeePerGas: BigNumber.from(31 * 10 ** 9),
+      maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
+    });
 
-  //   // expect revert
-  //   await expect(
-  //     web3.eth.sendTransaction({
-  //       from: operator.address,
-  //       to: fd.address,
-  //       value: ETH,
-  //       maxFeePerGas: BigNumber.from(31 * 10 ** 9),
-  //       maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
-  //     })
-  //   ).to.be.reverted;
-  // });
+    // expect revert
+    await expect(
+      web3.eth.sendTransaction({
+        from: operator.address,
+        to: fd.address,
+        value: ETH,
+        maxFeePerGas: BigNumber.from(31 * 10 ** 9),
+        maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
+      })
+    ).to.be.reverted;
+  });
 });
