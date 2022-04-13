@@ -26,4 +26,8 @@ interface IW3RC3 {
     function chunkSize(bytes memory name, uint256 chunkId) external view returns (uint256, bool);
 
     function removeChunk(bytes memory name, uint256 chunkId) external returns (bool);
+
+    function refund() external;
+
+    function destruct() external;
 }
