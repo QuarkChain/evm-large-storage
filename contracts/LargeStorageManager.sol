@@ -23,12 +23,7 @@ contract LargeStorageManager {
         return SLOT_LIMIT > 0;
     }
 
-    function _putChunk(
-        bytes32 key,
-        uint256 chunkId,
-        bytes memory data,
-        uint256 value
-    ) internal {
+    function _preparePut(bytes32 key, uint256 chunkId) private {
         bytes32 metadata = keyToMetadata[key][chunkId];
 
         if (metadata == bytes32(0)) {
@@ -42,6 +37,31 @@ contract LargeStorageManager {
                 StorageSlotSelfDestructable(addr).destruct();
             }
         }
+    }
+
+    function _putChunkFromCalldata(
+        bytes32 key,
+        uint256 chunkId,
+        bytes calldata data,
+        uint256 value
+    ) internal {
+        _preparePut(key, chunkId);
+
+        // store data and rewrite metadata
+        if (data.length > SLOT_LIMIT) {
+            keyToMetadata[key][chunkId] = StorageHelper.putRawFromCalldata(data, value).addrToBytes32();
+        } else {
+            keyToMetadata[key][chunkId] = SlotHelper.putRaw(keyToSlots[key][chunkId], data);
+        }
+    }
+
+    function _putChunk(
+        bytes32 key,
+        uint256 chunkId,
+        bytes memory data,
+        uint256 value
+    ) internal {
+        _preparePut(key, chunkId);
 
         // store data and rewrite metadata
         if (data.length > SLOT_LIMIT) {

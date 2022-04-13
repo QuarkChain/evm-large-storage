@@ -17,10 +17,10 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     }
 
     // Large storage methods
-    function write(bytes memory name, bytes memory data) public payable virtual override {
+    function write(bytes memory name, bytes calldata data) public payable virtual override {
         require(msg.sender == owner, "must from owner");
         // TODO: support multiple chunks
-        return _putChunk(keccak256(name), 0, data, msg.value);
+        return _putChunkFromCalldata(keccak256(name), 0, data, msg.value);
     }
 
     function read(bytes memory name) public view virtual override returns (bytes memory, bool) {
@@ -44,10 +44,10 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function writeChunk(
         bytes memory name,
         uint256 chunkId,
-        bytes memory data
+        bytes calldata data
     ) public payable virtual override {
         require(msg.sender == owner, "must from owner");
-        return _putChunk(keccak256(name), chunkId, data, msg.value);
+        return _putChunkFromCalldata(keccak256(name), chunkId, data, msg.value);
     }
 
     function readChunk(bytes memory name, uint256 chunkId) public view virtual override returns (bytes memory, bool) {
@@ -61,5 +61,15 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     function removeChunk(bytes memory name, uint256 chunkId) public virtual override returns (bool) {
         require(msg.sender == owner, "must from owner");
         return _removeChunk(keccak256(name), chunkId);
+    }
+
+    function refund() public override {
+        require(msg.sender == owner, "must from owner");
+        payable(owner).transfer(address(this).balance);
+    }
+
+    function destruct() public override {
+        require(msg.sender == owner, "must from owner");
+        selfdestruct(payable(owner));
     }
 }
