@@ -30,10 +30,10 @@ contract IncentivizedFlatDirectory is FlatDirectory {
         defaultFile = _defaultFile;
     }
 
-    function write(bytes memory name, bytes memory data) public payable override onlyOperatorOrOwner {
+    function write(bytes memory name, bytes calldata data) public payable override onlyOperatorOrOwner {
         require(msg.value == 0, "msg.value must be 0");
         return
-            _putChunk(
+            _putChunkFromCalldata(
                 keccak256(name),
                 0,
                 data,
@@ -48,11 +48,11 @@ contract IncentivizedFlatDirectory is FlatDirectory {
     function writeChunk(
         bytes memory name,
         uint256 chunkId,
-        bytes memory data
+        bytes calldata data
     ) public payable override onlyOperatorOrOwner {
         require(msg.value == 0, "msg.value must be 0");
         return
-            _putChunk(
+            _putChunkFromCalldata(
                 keccak256(name),
                 chunkId,
                 data,
