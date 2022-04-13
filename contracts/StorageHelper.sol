@@ -178,4 +178,16 @@ library StorageHelper {
             return(sub(content, 0x20), size)
         }
     }
+
+    function calculateValueForData(
+        uint256 datalen,
+        uint256 chunkSize,
+        uint256 codeStakingPerChunk
+    ) internal pure returns (uint256) {
+        return ((datalen + STORAGE_SLOT_CODE.length - 1) / chunkSize) * codeStakingPerChunk;
+    }
+
+    function storageSlotCodeLength() internal pure returns (uint256) {
+        return STORAGE_SLOT_CODE.length;
+    }
 }
