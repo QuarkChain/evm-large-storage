@@ -42,7 +42,11 @@ contract IncentivizedFlatDirectory is FlatDirectory {
     }
 
     function remove(bytes memory name) public override onlyOperatorOrOwner returns (uint256) {
-        return _remove(keccak256(name));
+        return _remove(keccak256(name), 0);
+    }
+
+    function truncate(bytes memory name, uint256 chunkId) public override onlyOperatorOrOwner returns (uint256) {
+        return _remove(keccak256(name), chunkId);
     }
 
     function writeChunk(

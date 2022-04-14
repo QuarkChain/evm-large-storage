@@ -99,6 +99,58 @@ describe("FlatDirectory Test", function () {
     expect(await fd.countChunks("0x616263")).to.eql(ToBig(1));
   });
 
+  it("write/truncate chunks", async function () {
+    const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
+    const fd = await FlatDirectory.deploy(0);
+    await fd.deployed();
+
+    expect(await fd.countChunks("0x616263")).to.eql(ToBig(0));
+
+    let data0 = Array.from({ length: 10 }, () =>
+      Math.floor(Math.random() * 256)
+    );
+    await fd.write("0x616263", data0);
+    expect(await fd.read("0x616263")).to.eql([
+      ethers.utils.hexlify(data0),
+      true,
+    ]);
+
+    let data1 = Array.from({ length: 20 }, () =>
+      Math.floor(Math.random() * 256)
+    );
+    await fd.writeChunk("0x616263", 1, data1);
+    expect(await fd.readChunk("0x616263", 1)).to.eql([
+      ethers.utils.hexlify(data1),
+      true,
+    ]);
+
+    let data2 = Array.from({ length: 30 }, () =>
+      Math.floor(Math.random() * 256)
+    );
+    await fd.writeChunk("0x616263", 2, data2);
+    expect(await fd.readChunk("0x616263", 2)).to.eql([
+      ethers.utils.hexlify(data2),
+      true,
+    ]);
+
+    await fd.truncate("0x616263", 3); // should do nothing
+    expect(await fd.size("0x616263")).to.eql([ToBig(60), ToBig(3)]);
+    expect(await fd.countChunks("0x616263")).to.eql(ToBig(3));
+    expect(await fd.read("0x616263")).to.eql([
+      ethers.utils.hexlify(data0.concat(data1).concat(data2)),
+      true,
+    ]);
+
+    await fd.truncate("0x616263", 1); // should succeed
+    expect(await fd.size("0x616263")).to.eql([ToBig(10), ToBig(1)]);
+    expect(await fd.read("0x616263")).to.eql([
+      ethers.utils.hexlify(data0),
+      true,
+    ]);
+    expect(await fd.readChunk("0x616263", 1)).to.eql(["0x", false]);
+    expect(await fd.countChunks("0x616263")).to.eql(ToBig(1));
+  });
+
   it("readFile through fallback ", async function () {
     const FlatDirectory = await ethers.getContractFactory("FlatDirectory");
     const fd = await FlatDirectory.deploy(0);

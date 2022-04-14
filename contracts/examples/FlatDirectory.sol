@@ -32,9 +32,8 @@ contract FlatDirectory is W3RC3 {
         StorageHelper.returnBytesInplace(content);
     }
 
-    function setDefault(bytes memory _defaultFile) public virtual{
+    function setDefault(bytes memory _defaultFile) public virtual {
         require(msg.sender == owner, "must from owner");
         defaultFile = _defaultFile;
     }
-    
 }
