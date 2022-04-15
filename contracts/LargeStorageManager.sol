@@ -161,9 +161,7 @@ contract LargeStorageManager {
     }
 
     // Returns # of chunks deleted
-    function _remove(bytes32 key) internal returns (uint256) {
-        uint256 chunkId = 0;
-
+    function _remove(bytes32 key, uint256 chunkId) internal returns (uint256) {
         while (true) {
             bytes32 metadata = keyToMetadata[key][chunkId];
             if (metadata == bytes32(0x0)) {

@@ -2,14 +2,14 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { BigNumber } = require("ethers");
 
-let overrideData = {maxPriorityFeePerGas:BigNumber.from(15*10**9),maxFeePerGas:BigNumber.from(30*10**9)}
+let overrideData = { maxPriorityFeePerGas: BigNumber.from(15 * 10 ** 9), maxFeePerGas: BigNumber.from(30 * 10 ** 9) };
 exports.writeTest = async function writeTest(fd, key, filesize, context) {
   const data = [];
   for (let i = 0; i < filesize; i++) {
     data.push(context);
   }
 
-  let tx1 = await fd.write(key, data,overrideData);
+  let tx1 = await fd.write(key, data, overrideData);
   await tx1.wait();
 
   let [resData] = await fd.read(key);
@@ -20,13 +20,7 @@ exports.writeTest = async function writeTest(fd, key, filesize, context) {
   expect(fsize.toNumber()).to.eq(filesize);
 };
 
-exports.writeChunkTest = async function writeChunkTest(
-  fd,
-  key,
-  chunkId,
-  filesize,
-  context
-) {
+exports.writeChunkTest = async function writeChunkTest(fd, key, chunkId, filesize, context) {
   const data = [];
   for (let i = 0; i < filesize; i++) {
     data.push(context);
@@ -49,25 +43,16 @@ exports.writeChunkTest = async function writeChunkTest(
 };
 
 exports.removeTest = async function removeTest(fd, key) {
-  let tx1 = await fd.remove(key,overrideData);
+  let tx1 = await fd.remove(key, overrideData);
   await tx1.wait();
 };
 
 exports.removeChunkTest = async function removeChunkTest(fd, key, chunkId) {
-  let tx1 = await fd.removeChunk(key, chunkId,overrideData);
+  let tx1 = await fd.removeChunk(key, chunkId, overrideData);
   await tx1.wait();
 };
 
-exports.readTest = async function readTest(
-  fd,
-  key,
-  filesize1,
-  context1,
-  filesize2,
-  context2,
-  filesize3,
-  context3
-) {
+exports.readTest = async function readTest(fd, key, filesize1, context1, filesize2, context2, filesize3, context3) {
   const data = [];
   for (let i = 0; i < filesize1; i++) {
     data.push(context1);
