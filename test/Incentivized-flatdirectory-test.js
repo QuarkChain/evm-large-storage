@@ -1,12 +1,13 @@
 const { expect } = require("chai");
 const { BigNumber } = require("ethers");
-const { ethers, web3 } = require("hardhat");
+const { ethers, web3, network } = require("hardhat");
+const { extendEnvironment } = require("hardhat/config");
 const { writeChunkTest, writeTest, removeTest, removeChunkTest, readTest } = require("./shared/utils");
 
 let ETH = BigNumber.from(10).pow(18);
 let ChunkSize = BigNumber.from(1024).mul(BigNumber.from(24));
 let CodeStakingPerChunk = BigNumber.from(10).pow(BigNumber.from(18));
-let overrideData = { maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9), maxFeePerGas: BigNumber.from(31 * 10 ** 9) };
+let overrideData = { maxPriorityFeePerGas: BigNumber.from(17 * 10 ** 9), maxFeePerGas: BigNumber.from(32 * 10 ** 9) };
 
 describe("IncentivizedFlatDirectory Test", function () {
   let fd;
@@ -16,8 +17,9 @@ describe("IncentivizedFlatDirectory Test", function () {
   let sendedEth;
 
   beforeEach(async () => {
-    [owner, operator, user,] = await ethers.getSigners();
-    console.log(owner.address ,operator.address , user.address)
+    let accs = await ethers.getSigners();
+    [owner, operator, user] = accs;
+    expect(accs.length).to.above(2, "no enough accounts");
     factory = await ethers.getContractFactory("IncentivizedFlatDirectory");
     sendedEth = BigNumber.from(4).mul(CodeStakingPerChunk);
     let _nonce = await ethers.provider.getTransactionCount(owner.address);
@@ -27,7 +29,6 @@ describe("IncentivizedFlatDirectory Test", function () {
       maxPriorityFeePerGas: BigNumber.from(15 * 10 ** 9),
       maxFeePerGas: BigNumber.from(30 * 10 ** 9),
     });
-    // console.log( fd.deployTransaction)
     await fd.deployed();
   });
 
@@ -71,81 +72,6 @@ describe("IncentivizedFlatDirectory Test", function () {
     await readTest(fd.connect(user), "0x01", 0, 0, 0, 0, 0, 0);
   });
 
-  it("verify contract balance after write operation", async function () {
-    let totalTokenConsumed = BigNumber.from(0);
-
-    // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-    // set operator
-    await fd.changeOperator(operator.address, overrideData);
-
-    // need stake one eth
-    let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
-    let tx = await fd.connect(operator).write("0x01", data0, overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
-    totalTokenConsumed = totalTokenConsumed.add(ETH);
-
-    // need stake two eth
-    let data1 = Array.from({ length: ChunkSize * 2 }, () => Math.floor(Math.random() * 256));
-    tx = await fd.connect(operator).write("0x02", data1, overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH.mul(2)).sub(totalTokenConsumed));
-    totalTokenConsumed = totalTokenConsumed.add(ETH.mul(2));
-
-    // do not need stake
-    let storageSlotCodeLen = await fd.storageSlotCodeLength();
-    let v = await fd.calculateValueForData(ChunkSize.sub(storageSlotCodeLen));
-    console.log("need value", v.toString());
-    expect(v).to.eq(BigNumber.from(0));
-
-    let data2 = Array.from({ length: ChunkSize.sub(storageSlotCodeLen) }, () => Math.floor(Math.random() * 256));
-    tx = await fd.connect(operator).write("0x03", data2, overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(totalTokenConsumed));
-  });
-
-  it("write and remove test", async function () {
-    let totalTokenConsumed = BigNumber.from(0);
-
-    // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-    // set operator
-    let tx = await fd.changeOperator(operator.address, overrideData);
-    await tx.wait();
-
-    // need stake one eth
-    let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
-    tx = await fd.connect(operator).write("0x01", data0, overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
-    totalTokenConsumed = totalTokenConsumed.add(ETH);
-
-    tx = await fd.connect(operator).remove("0x01", overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  });
-
-  it("writeChunk and removeChunk test", async function () {
-    let totalTokenConsumed = BigNumber.from(0);
-
-    // verify FaatDirectory contract balance
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-    // set operator
-    await fd.changeOperator(operator.address, overrideData);
-
-    // need stake one eth
-    let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
-    let tx = await fd.connect(operator).writeChunk("0x01", 0, data0, overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
-    totalTokenConsumed = totalTokenConsumed.add(ETH);
-
-    tx = await fd.connect(operator).removeChunk("0x01", 0, overrideData);
-    await tx.wait();
-    expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
-  });
-
   it("refund with different permissions test", async function () {
     // verify FaatDirectory contract balance
     expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
@@ -177,22 +103,18 @@ describe("IncentivizedFlatDirectory Test", function () {
 
     // expect failed when msg.value > 0
     await expect(
-      fd
-        .connect(operator)
-        .writeChunk("0x01", 0, data0, {
-          value: ETH,
-          maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
-          maxFeePerGas: BigNumber.from(31 * 10 ** 9),
-        })
+      fd.connect(operator).writeChunk("0x01", 0, data0, {
+        value: ETH,
+        maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
+        maxFeePerGas: BigNumber.from(31 * 10 ** 9),
+      })
     ).to.be.reverted;
     await expect(
-      fd
-        .connect(operator)
-        .write("0x02", data0, {
-          value: ETH,
-          maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
-          maxFeePerGas: BigNumber.from(31 * 10 ** 9),
-        })
+      fd.connect(operator).write("0x02", data0, {
+        value: ETH,
+        maxPriorityFeePerGas: BigNumber.from(16 * 10 ** 9),
+        maxFeePerGas: BigNumber.from(31 * 10 ** 9),
+      })
     ).to.be.reverted;
 
     // only owner can send token to contract
@@ -215,4 +137,81 @@ describe("IncentivizedFlatDirectory Test", function () {
       })
     ).to.be.reverted;
   });
+
+  if (network.name == "w3qGalileo") {
+    it("verify contract balance after write operation", async function () {
+      let totalTokenConsumed = BigNumber.from(0);
+
+      // verify FaatDirectory contract balance
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+      // set operator
+      await fd.changeOperator(operator.address, overrideData);
+
+      // need stake one eth
+      let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
+      let tx = await fd.connect(operator).write("0x01", data0, overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
+      totalTokenConsumed = totalTokenConsumed.add(ETH);
+
+      // need stake two eth
+      let data1 = Array.from({ length: ChunkSize * 2 }, () => Math.floor(Math.random() * 256));
+      tx = await fd.connect(operator).write("0x02", data1, overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH.mul(2)).sub(totalTokenConsumed));
+      totalTokenConsumed = totalTokenConsumed.add(ETH.mul(2));
+
+      // do not need stake
+      let storageSlotCodeLen = await fd.storageSlotCodeLength();
+      let v = await fd.calculateValueForData(ChunkSize.sub(storageSlotCodeLen));
+      console.log("need value", v.toString());
+      expect(v).to.eq(BigNumber.from(0));
+
+      let data2 = Array.from({ length: ChunkSize.sub(storageSlotCodeLen) }, () => Math.floor(Math.random() * 256));
+      tx = await fd.connect(operator).write("0x03", data2, overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(totalTokenConsumed));
+    });
+
+    it("write and remove test", async function () {
+      let totalTokenConsumed = BigNumber.from(0);
+
+      // verify FaatDirectory contract balance
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+      // set operator
+      let tx = await fd.changeOperator(operator.address, overrideData);
+      await tx.wait();
+
+      // need stake one eth
+      let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
+      tx = await fd.connect(operator).write("0x01", data0, overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
+      totalTokenConsumed = totalTokenConsumed.add(ETH);
+
+      tx = await fd.connect(operator).remove("0x01", overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+    });
+
+    it("writeChunk and removeChunk test", async function () {
+      let totalTokenConsumed = BigNumber.from(0);
+
+      // verify FaatDirectory contract balance
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+      // set operator
+      await fd.changeOperator(operator.address, overrideData);
+
+      // need stake one eth
+      let data0 = Array.from({ length: ChunkSize }, () => Math.floor(Math.random() * 256));
+      let tx = await fd.connect(operator).writeChunk("0x01", 0, data0, overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth.sub(ETH));
+      totalTokenConsumed = totalTokenConsumed.add(ETH);
+
+      tx = await fd.connect(operator).removeChunk("0x01", 0, overrideData);
+      await tx.wait();
+      expect(await ethers.provider.getBalance(fd.address)).to.eq(sendedEth);
+    });
+  }
 });
