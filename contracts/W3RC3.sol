@@ -78,8 +78,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
         selfdestruct(payable(owner));
     }
 
-    function fileChanged(bytes memory name, uint256 chunkId, bytes32 hash) public view returns (bool) {
-        (bytes memory localData,) = readChunk(name, chunkId);
-        return keccak256(localData) != hash;
+    function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
+        return _getChunkHash(keccak256(name), chunkId);
     }
 }

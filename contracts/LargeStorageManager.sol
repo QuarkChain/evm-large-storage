@@ -203,4 +203,17 @@ contract LargeStorageManager {
 
         return true;
     }
+
+    function _getChunkHash(bytes32 key, uint256 chunkId) internal view returns (bytes32) {
+        bytes32 metadata = keyToMetadata[key][chunkId];
+        if (metadata.isInSlot()) {
+            bytes memory res = SlotHelper.getRaw(keyToSlots[key][chunkId], metadata);
+            return keccak256(res);
+        } else {
+            address addr = metadata.bytes32ToAddr();
+            bytes32 hash;
+            assembly { hash := extcodehash(addr) }
+            return hash;
+        }
+    }
 }
