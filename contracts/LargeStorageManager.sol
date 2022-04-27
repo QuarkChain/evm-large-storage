@@ -216,4 +216,8 @@ contract LargeStorageManager {
             return hash;
         }
     }
+
+    function _getMetadataHeader() internal view returns (bytes memory) {
+        return StorageHelper.getRawDataHeader();
+    }
 }
