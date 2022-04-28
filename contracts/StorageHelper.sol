@@ -18,22 +18,6 @@ library StorageHelper {
     uint256 internal constant FACTORY_ADDR_OFF0 = 305 + 32 + ADDR_OFF0;
     uint256 internal constant FACTORY_ADDR_OFF1 = 305 + 32 + ADDR_OFF1;
 
-    function getRawDataHeader() internal view returns (bytes memory) {
-        bytes memory bytecode = STORAGE_SLOT_CODE;
-        {
-            // revise the owner to the contract (so that it is destructable)
-            uint256 off = ADDR_OFF0 + 0x20;
-            assembly {
-                mstore(add(bytecode, off), address())
-            }
-            off = ADDR_OFF1 + 0x20;
-            assembly {
-                mstore(add(bytecode, off), address())
-            }
-        }
-        return bytecode;
-    }
-
     function putRawFromCalldata(bytes calldata data, uint256 value) internal returns (address) {
         bytes memory bytecode = bytes.concat(STORAGE_SLOT_CODE, data);
         {

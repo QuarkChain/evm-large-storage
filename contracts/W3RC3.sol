@@ -79,10 +79,7 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
     }
 
     function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
-        return _getChunkHash(keccak256(name), chunkId);
-    }
-
-    function getMetadataHeader() public view returns (bytes memory) {
-        return _getMetadataHeader();
+        (bytes memory localData,) = readChunk(name, chunkId);
+        return keccak256(localData);
     }
 }
