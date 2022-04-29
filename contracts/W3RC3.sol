@@ -77,4 +77,9 @@ contract W3RC3 is IW3RC3, LargeStorageManager {
         require(msg.sender == owner, "must from owner");
         selfdestruct(payable(owner));
     }
+
+    function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
+        (bytes memory localData,) = readChunk(name, chunkId);
+        return keccak256(localData);
+    }
 }
