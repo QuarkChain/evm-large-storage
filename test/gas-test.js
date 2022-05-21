@@ -27,7 +27,7 @@ let local_tester = async function (size, puts = 1) {
 
 let large_tester = async function (size, puts = 1) {
   const StorageManager = await ethers.getContractFactory("StorageManagerTest");
-  const sm = await StorageManager.deploy();
+  const sm = await StorageManager.deploy(0);
   await sm.deployed();
 
   const value = [];
@@ -48,7 +48,7 @@ let large_tester = async function (size, puts = 1) {
 
 let large2_tester = async function (size, puts = 1) {
   const StorageManager = await ethers.getContractFactory("StorageManagerTest");
-  const sm = await StorageManager.deploy();
+  const sm = await StorageManager.deploy(0);
   await sm.deployed();
 
   const value = [];

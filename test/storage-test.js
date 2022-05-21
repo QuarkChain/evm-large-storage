@@ -7,7 +7,7 @@ describe("StorageManager Func Test", function () {
     const StorageManager = await ethers.getContractFactory(
       "StorageManagerTest"
     );
-    const sm = await StorageManager.deploy();
+    const sm = await StorageManager.deploy(0);
     await sm.deployed();
 
     await sm.put(
@@ -50,7 +50,7 @@ describe("StorageManager Func Test", function () {
     const StorageManager = await ethers.getContractFactory(
       "StorageManagerTest"
     );
-    const sm = await StorageManager.deploy();
+    const sm = await StorageManager.deploy(0);
     await sm.deployed();
 
     await sm.put2(

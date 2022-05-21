@@ -21,17 +21,17 @@ interface IW3RC3 {
         bytes memory data
     ) external payable;
 
-    function readChunk(bytes memory name, uint256 chunkId)
-        external
-        view
-        returns (bytes memory, bool);
+    function readChunk(bytes memory name, uint256 chunkId) external view returns (bytes memory, bool);
 
-    function chunkSize(bytes memory name, uint256 chunkId)
-        external
-        view
-        returns (uint256, bool);
+    function chunkSize(bytes memory name, uint256 chunkId) external view returns (uint256, bool);
 
-    function removeChunk(bytes memory name, uint256 chunkId)
-        external
-        returns (bool);
+    function removeChunk(bytes memory name, uint256 chunkId) external returns (bool);
+
+    function truncate(bytes memory name, uint256 chunkId) external returns (uint256);
+
+    function refund() external;
+
+    function destruct() external;
+
+    function getChunkHash(bytes memory name, uint256 chunkId) external view returns (bytes32);
 }

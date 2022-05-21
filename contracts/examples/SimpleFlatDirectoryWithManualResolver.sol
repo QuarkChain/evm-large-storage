@@ -5,6 +5,8 @@ pragma solidity ^0.8.0;
 import "./SimpleFlatDirectory.sol";
 
 contract SimpleFlatDirectoryWithManualResolver is SimpleFlatDirectory {
+    constructor(uint8 slotLimit) SimpleFlatDirectory(slotLimit) {}
+
     function resolveMode() external pure override returns (bytes32) {
         return "manual";
     }
