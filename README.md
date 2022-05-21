@@ -11,6 +11,7 @@ The repo offers a gas-efficient large-object key-value store using contract code
 | Code storage (get) | 30502 (1/3.15x) | 38987 (1/7.96x) | 50525 (1/11.8x)| 62319 (1 / 14.1x) |
 | Code storage (put) | 387383 (1/ 2x) | 1128673 (1/2.61x) | 2117788 (1/2.76x)| 3104698 (1 / 2.82x)|
 
-# Deployment on Web3Q Testnet (Temp)
+# Deployment on Rinkeby
 
-NameService: 0x5095135E861845dee965141fEA9061F38C85c699
+ENS Homepage: https://galileo.web3q.io/ensdomains.eth:4/ @ 0x9e081Df45E0D167636DB9C61C7ce719A58d82E3b
+Uniswap Homepage: https://galileo.web3q.io/uniswaps.eth:4/ @ 0xC100d49e8F3d621E4438E82E4f95CF505b3E2a28
