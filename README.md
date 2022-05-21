@@ -13,5 +13,5 @@ The repo offers a gas-efficient large-object key-value store using contract code
 
 # Deployment on Rinkeby
 
-ENS Homepage: https://galileo.web3q.io/ensdomains.eth:4/ @ 0x9e081Df45E0D167636DB9C61C7ce719A58d82E3b
-Uniswap Homepage: https://galileo.web3q.io/uniswaps.eth:4/ @ 0xC100d49e8F3d621E4438E82E4f95CF505b3E2a28
+- ENS Homepage: https://galileo.web3q.io/ensdomains.eth:4/ @ 0x9e081Df45E0D167636DB9C61C7ce719A58d82E3b
+- Uniswap Homepage: https://galileo.web3q.io/uniswaps.eth:4/ @ 0xC100d49e8F3d621E4438E82E4f95CF505b3E2a28
