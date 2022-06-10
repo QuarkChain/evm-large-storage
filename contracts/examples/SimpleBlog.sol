@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./SimpleFlatDirectory.sol";
+import "./CommentControl.sol";
 
 contract SimpleBlog is SimpleFlatDirectory {
     struct Blog {
@@ -11,6 +12,11 @@ contract SimpleBlog is SimpleFlatDirectory {
 
     Blog[] public blogs;
     uint256 public blogLength;
+    address public commentControl;
+
+    constructor() {
+        commentControl = address(new CommentControl());
+    }
 
     function writeBlog(bytes memory title, bytes memory content)
         public
