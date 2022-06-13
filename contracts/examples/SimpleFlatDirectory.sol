@@ -6,7 +6,7 @@ import "../StorageManager.sol";
 
 contract SimpleFlatDirectory is StorageManager {
     bytes public defaultFile = "";
-    address public immutable owner;
+    address public owner;
 
     constructor() {
         owner = msg.sender;
