@@ -24,21 +24,15 @@ contract SimpleBlog is SimpleFlatDirectory {
         uint256 timestamp; // 0 means deleted
     }
 
-    struct Comment {
-        address owner;
-        uint256 timestamp;
-    }
-
     struct CommentsInfo {
         address contractAddress;
         uint256 commentSize;
-        Comment[] commentList;
     }
 
     Blog[] public blogs;
     uint256 public blogLength;
 
-    mapping(uint256 => CommentsInfo) commentsList;
+    mapping(uint256 => CommentsInfo) public commentsList;
 
     function writeBlog(bytes memory title, bytes memory content)
         public
@@ -51,7 +45,8 @@ contract SimpleBlog is SimpleFlatDirectory {
 
         // pre comment
         CommentsInfo storage info = commentsList[idx];
-        info.contractAddress = address(new SimpleComment());
+        SimpleComment comment = new SimpleComment();
+        info.contractAddress = address(comment);
     }
 
     function editBlog(
@@ -133,10 +128,10 @@ contract SimpleBlog is SimpleFlatDirectory {
         address contractAddress = info.contractAddress;
         require(contractAddress != address(0), "blog not exist");
 
-        uint256 commentId = info.commentList.length;
         SimpleComment com = SimpleComment(contractAddress);
-        com.writeComment(commentId, content);
-        info.commentList.push(Comment(msg.sender, block.timestamp));
+        com.writeComment(info.commentSize, content);
+        com.writeOwner(info.commentSize, msg.sender);
+        com.writeTimestamp(info.commentSize, block.timestamp);
         info.commentSize++;
     }
 
@@ -145,13 +140,11 @@ contract SimpleBlog is SimpleFlatDirectory {
         address contractAddress = info.contractAddress;
         require(contractAddress != address(0), "blog not exist");
 
-        Comment storage com = info.commentList[commentId];
-        require(com.owner == msg.sender, "Only owner can delete");
-
         SimpleComment comment = SimpleComment(contractAddress);
-        comment.deleteComment(commentId);
-        com.timestamp = 0;
-        com.owner = address(0);
+        address owner = comment.getOwner(commentId);
+        require(owner == msg.sender, "Only owner can delete");
+
+        comment.deleteComment(commentId, info.commentSize);
         info.commentSize--;
     }
 
@@ -159,39 +152,29 @@ contract SimpleBlog is SimpleFlatDirectory {
         public
         view
         returns (
-            uint256[] memory ids,
-            uint256[] memory timestamps,
             address[] memory users,
+            bytes[] memory timestamps,
             bytes[] memory contents
         )
     {
         CommentsInfo storage info = commentsList[idx];
         address contractAddress = info.contractAddress;
         if (contractAddress == address(0)) {
-            return (new uint256[](0), new uint256[](0), new address[](0), new bytes[](0));
+            return (new address[](0), new bytes[](0), new bytes[](0));
         }
 
         uint256 commentSize = info.commentSize;
-        ids = new uint256[](commentSize);
-        timestamps = new uint256[](commentSize);
         users = new address[](commentSize);
+        timestamps = new bytes[](commentSize);
         contents = new bytes[](commentSize);
 
-        uint256 pt = 0;
-        uint256 length = info.commentList.length;
-        for (uint256 i = 0; i < length; i++) {
-            Comment memory com = info.commentList[i];
-            if(com.timestamp != 0){
-                SimpleComment comment = SimpleComment(contractAddress);
-                bytes memory content = comment.getComment(i);
-                ids[pt] = i;
-                users[pt] = com.owner;
-                timestamps[pt] = com.timestamp;
-                contents[pt] = content;
-                pt++;
-            }
+        SimpleComment comment = SimpleComment(contractAddress);
+        for (uint256 i = 0; i < commentSize; i++) {
+            timestamps[i] = comment.getTimestamp(i);
+            users[i] = comment.getOwner(i);
+            contents[i] = comment.getComment(i);
         }
-        return (ids, timestamps, users, contents);
+        return (users, timestamps, contents);
     }
 
     function changeOwner(address newOwner) public isOwner {
