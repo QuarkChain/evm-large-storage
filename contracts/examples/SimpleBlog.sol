@@ -2,15 +2,37 @@
 pragma solidity ^0.8.0;
 
 import "./SimpleFlatDirectory.sol";
+import "./SimpleComment.sol";
 
 contract SimpleBlog is SimpleFlatDirectory {
+    // event for EVM logging
+    event OwnerSet(address indexed oldOwner, address indexed newOwner);
+
+    // modifier to check if caller is owner
+    modifier isOwner() {
+        // If the first argument of 'require' evaluates to 'false', execution terminates and all
+        // changes to the state and to Ether balances are reverted.
+        // This used to consume all gas in old EVM versions, but not anymore.
+        // It is often a good idea to use 'require' to check if functions are called correctly.
+        // As a second argument, you can also provide an explanation about what went wrong.
+        require(msg.sender == owner, "Caller is not owner");
+        _;
+    }
+
     struct Blog {
         bytes title;
         uint256 timestamp; // 0 means deleted
     }
 
+    struct CommentsInfo {
+        address contractAddress;
+        uint256 commentSize;
+    }
+
     Blog[] public blogs;
     uint256 public blogLength;
+
+    mapping(uint256 => CommentsInfo) public commentsList;
 
     function writeBlog(bytes memory title, bytes memory content)
         public
@@ -20,6 +42,11 @@ contract SimpleBlog is SimpleFlatDirectory {
         blogs.push(Blog(title, block.timestamp)); // solhint-disable-line not-rely-on-time
         blogLength++;
         write(abi.encodePacked(idx), content);
+
+        // pre comment
+        CommentsInfo storage info = commentsList[idx];
+        SimpleComment comment = new SimpleComment();
+        info.contractAddress = address(comment);
     }
 
     function editBlog(
@@ -93,5 +120,65 @@ contract SimpleBlog is SimpleFlatDirectory {
             if (blogs[--idx].timestamp != 0) return (idx, true);
         }
         return (0, false);
+    }
+
+
+    function writeComment(uint256 idx, bytes memory content) public payable {
+        CommentsInfo storage info = commentsList[idx];
+        address contractAddress = info.contractAddress;
+        require(contractAddress != address(0), "blog not exist");
+
+        SimpleComment com = SimpleComment(contractAddress);
+        com.writeComment(info.commentSize, content);
+        com.writeOwner(info.commentSize, msg.sender);
+        com.writeTimestamp(info.commentSize, block.timestamp);
+        info.commentSize++;
+    }
+
+    function deleteComment(uint256 idx, uint256 commentId) public {
+        CommentsInfo storage info = commentsList[idx];
+        address contractAddress = info.contractAddress;
+        require(contractAddress != address(0), "blog not exist");
+
+        SimpleComment comment = SimpleComment(contractAddress);
+        address owner = comment.getOwner(commentId);
+        require(owner == msg.sender, "Only owner can delete");
+
+        comment.deleteComment(commentId, info.commentSize);
+        info.commentSize--;
+    }
+
+    function getComments(uint256 idx)
+        public
+        view
+        returns (
+            address[] memory users,
+            bytes[] memory timestamps,
+            bytes[] memory contents
+        )
+    {
+        CommentsInfo storage info = commentsList[idx];
+        address contractAddress = info.contractAddress;
+        if (contractAddress == address(0)) {
+            return (new address[](0), new bytes[](0), new bytes[](0));
+        }
+
+        uint256 commentSize = info.commentSize;
+        users = new address[](commentSize);
+        timestamps = new bytes[](commentSize);
+        contents = new bytes[](commentSize);
+
+        SimpleComment comment = SimpleComment(contractAddress);
+        for (uint256 i = 0; i < commentSize; i++) {
+            timestamps[i] = comment.getTimestamp(i);
+            users[i] = comment.getOwner(i);
+            contents[i] = comment.getComment(i);
+        }
+        return (users, timestamps, contents);
+    }
+
+    function changeOwner(address newOwner) public isOwner {
+        emit OwnerSet(owner, newOwner);
+        owner = newOwner;
     }
 }
