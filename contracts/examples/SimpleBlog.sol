@@ -2,23 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "./SimpleFlatDirectory.sol";
+import "./FlatDirectory.sol";
 import "./SimpleComment.sol";
 
 contract SimpleBlog is SimpleFlatDirectory {
-    // event for EVM logging
-    event OwnerSet(address indexed oldOwner, address indexed newOwner);
-
-    // modifier to check if caller is owner
-    modifier isOwner() {
-        // If the first argument of 'require' evaluates to 'false', execution terminates and all
-        // changes to the state and to Ether balances are reverted.
-        // This used to consume all gas in old EVM versions, but not anymore.
-        // It is often a good idea to use 'require' to check if functions are called correctly.
-        // As a second argument, you can also provide an explanation about what went wrong.
-        require(msg.sender == owner, "Caller is not owner");
-        _;
-    }
-
     struct Blog {
         bytes title;
         uint256 timestamp; // 0 means deleted
@@ -33,6 +20,14 @@ contract SimpleBlog is SimpleFlatDirectory {
     uint256 public blogLength;
 
     mapping(uint256 => CommentsInfo) public commentsList;
+
+    address public assets;
+
+    constructor() SimpleFlatDirectory(0) {
+        FlatDirectory flat = new FlatDirectory(0);
+        flat.changeOwner(msg.sender);
+        assets = address(flat);
+    }
 
     function writeBlog(bytes memory title, bytes memory content)
         public
@@ -175,10 +170,5 @@ contract SimpleBlog is SimpleFlatDirectory {
             contents[i] = comment.getComment(i);
         }
         return (users, timestamps, contents);
-    }
-
-    function changeOwner(address newOwner) public isOwner {
-        emit OwnerSet(owner, newOwner);
-        owner = newOwner;
     }
 }

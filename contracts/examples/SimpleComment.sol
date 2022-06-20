@@ -5,6 +5,8 @@ import "./SimpleFlatDirectory.sol";
 
 contract SimpleComment is SimpleFlatDirectory {
 
+    constructor() SimpleFlatDirectory(0) {}
+
     function uintToBytes(uint v) internal pure returns (bytes memory) {
         uint maxlength = 100;
         bytes memory reversed = new bytes(maxlength);
