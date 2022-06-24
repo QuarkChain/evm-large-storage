@@ -39,6 +39,9 @@ contract SimpleFilebox {
         fileFD = new FlatDirectory(0);
     }
 
+    receive() external payable {
+    }
+
     function setGateway(string calldata _gateway) public isOwner {
         gateway = _gateway;
     }
@@ -66,21 +69,26 @@ contract SimpleFilebox {
         bytes32 nameHash = keccak256(name);
         require(fileAuthors[nameHash] == msg.sender, "Only author can delete");
 
+        uint256 id = fileFD.remove(name);
+        fileFD.refund();
+        payable(msg.sender).transfer(address(this).balance);
+
         FilesInfo storage info = files[msg.sender];
         delete info.urls[info.ids[nameHash]];
         delete info.ids[nameHash];
         info.fileSize--;
-
         fileAuthors[nameHash] = address(0);
 
-        return fileFD.remove(name);
+        return id;
     }
 
     function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
         return fileFD.getChunkHash(name, chunkId);
     }
 
-
+    function countChunks(bytes memory name) public view returns (uint256) {
+        return fileFD.countChunks(name);
+    }
 
     function getUrl(bytes memory name) public view returns (string memory) {
         return string(abi.encodePacked(
@@ -106,5 +114,3 @@ contract SimpleFilebox {
         return urls;
     }
 }
-
-
