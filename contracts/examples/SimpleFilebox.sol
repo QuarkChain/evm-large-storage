@@ -93,7 +93,7 @@ contract SimpleFilebox {
     function getUrl(bytes memory name) public view returns (string memory) {
         return string(abi.encodePacked(
                 gateway,
-                'filebox.w3q/',
+                'file.w3q/',
                 name
             ));
     }
