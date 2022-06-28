@@ -19,10 +19,15 @@ contract SimpleFilebox {
         _;
     }
 
+    struct File {
+        uint256 time;
+        bytes name;
+    }
+
     struct FilesInfo {
-        uint256 fileSize;
-        string[] urls;
-        mapping(bytes32 => uint256) ids;
+        uint256 length;
+        File[] files;
+        mapping(bytes32 => uint256) fileIds;
     }
 
     FlatDirectory public fileFD;
@@ -31,7 +36,7 @@ contract SimpleFilebox {
     string public gateway;
 
     mapping(bytes32 => address) public fileAuthors;
-    mapping(address => FilesInfo) files;
+    mapping(address => FilesInfo) fileInfos;
 
     constructor(string memory _gateway) {
         owner = msg.sender;
@@ -54,15 +59,16 @@ contract SimpleFilebox {
         bytes32 nameHash = keccak256(name);
         require(fileAuthors[nameHash] == address(0) || fileAuthors[nameHash] == msg.sender, "File is Exist");
 
-        fileFD.writeChunk{value: msg.value}(name, chunkId, data);
-
         if (fileAuthors[nameHash] == address(0)) {
-            FilesInfo storage info = files[msg.sender];
-            info.urls.push(getUrl(name));
-            info.ids[nameHash] = info.fileSize;
-            info.fileSize++;
+            FilesInfo storage info = fileInfos[msg.sender];
+            info.files.push(File(block.timestamp, name));
+            info.fileIds[nameHash] = info.files.length - 1;
+            info.length++;
+
+            fileAuthors[nameHash] = msg.sender;
         }
-        fileAuthors[nameHash] = msg.sender;
+
+        fileFD.writeChunk{value: msg.value}(name, chunkId, data);
     }
 
     function remove(bytes memory name) public returns (uint256) {
@@ -73,12 +79,12 @@ contract SimpleFilebox {
         fileFD.refund();
         payable(msg.sender).transfer(address(this).balance);
 
-        FilesInfo storage info = files[msg.sender];
-        delete info.urls[info.ids[nameHash]];
-        delete info.ids[nameHash];
-        info.fileSize--;
-        fileAuthors[nameHash] = address(0);
+        FilesInfo storage info = fileInfos[msg.sender];
+        delete info.files[info.fileIds[nameHash]];
+        delete info.fileIds[nameHash];
+        info.length--;
 
+        delete fileAuthors[nameHash];
         return id;
     }
 
@@ -98,19 +104,28 @@ contract SimpleFilebox {
             ));
     }
 
-    function getUserFiles() public view virtual returns (string[] memory) {
-        return getAuthorFiles(msg.sender);
-    }
+    function getAuthorFiles(address author)
+    public view
+    returns (
+        uint256[] memory times,
+        bytes[] memory names,
+        string[] memory urls
+    )
+    {
+        uint256 length = fileInfos[author].length;
+        times = new uint256[](length);
+        names = new bytes[](length);
+        urls = new string[](length);
 
-    function getAuthorFiles(address author) public view returns (string[] memory) {
-        string[] memory localData = files[author].urls;
-        uint256 size = files[author].fileSize;
-        string[] memory urls = new string[](size);
-        for (uint256 i; i < localData.length; i++) {
-            if(keccak256(bytes(localData[i])) != keccak256(bytes(''))) {
-                urls[i] = localData[i];
+        uint256 step = 0;
+        uint256 size = fileInfos[author].files.length;
+        for (uint256 i; i < size; i++) {
+            if(fileInfos[author].files[i].time != 0) {
+                times[step] = fileInfos[author].files[i].time;
+                names[step] = fileInfos[author].files[i].name;
+                urls[step] = getUrl(names[step]);
+                step++;
             }
         }
-        return urls;
     }
 }
