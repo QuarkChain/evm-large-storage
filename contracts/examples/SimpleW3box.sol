@@ -2,9 +2,12 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "./FlatDirectory.sol";
 
-contract SimpleFilebox {
+contract SimpleW3box {
+    using Strings for uint256;
+
     // event for EVM logging
     event OwnerSet(address indexed oldOwner, address indexed newOwner);
 
@@ -22,6 +25,7 @@ contract SimpleFilebox {
     struct File {
         uint256 time;
         bytes name;
+        bytes fileType;
     }
 
     struct FilesInfo {
@@ -35,7 +39,6 @@ contract SimpleFilebox {
     address public owner;
     string public gateway;
 
-    mapping(bytes32 => address) public fileAuthors;
     mapping(address => FilesInfo) fileInfos;
 
     constructor(string memory _gateway) {
@@ -51,49 +54,52 @@ contract SimpleFilebox {
         gateway = _gateway;
     }
 
-    function write(bytes memory name, bytes calldata data) public payable {
-        writeChunk(name, 0, data);
+    function write(bytes memory name, bytes memory fileType, bytes calldata data) public payable {
+        writeChunk(name, fileType, 0, data);
     }
 
-    function writeChunk(bytes memory name, uint256 chunkId, bytes calldata data) public payable {
+    function writeChunk(bytes memory name, bytes memory fileType, uint256 chunkId, bytes calldata data) public payable {
         bytes32 nameHash = keccak256(name);
-        require(fileAuthors[nameHash] == address(0) || fileAuthors[nameHash] == msg.sender, "File is Exist");
-
-        if (fileAuthors[nameHash] == address(0)) {
-            FilesInfo storage info = fileInfos[msg.sender];
-            info.files.push(File(block.timestamp, name));
-            info.fileIds[nameHash] = info.files.length - 1;
+        FilesInfo storage info = fileInfos[msg.sender];
+        if (info.fileIds[nameHash] == 0) {
+            // first add file
+            info.files.push(File(block.timestamp, name, fileType));
+            info.fileIds[nameHash] = info.files.length;
             info.length++;
-
-            fileAuthors[nameHash] = msg.sender;
         }
 
-        fileFD.writeChunk{value: msg.value}(name, chunkId, data);
+        fileFD.writeChunk{value: msg.value}(getNewName(msg.sender, name), chunkId, data);
     }
 
     function remove(bytes memory name) public returns (uint256) {
         bytes32 nameHash = keccak256(name);
-        require(fileAuthors[nameHash] == msg.sender, "Only author can delete");
-
-        uint256 id = fileFD.remove(name);
-        fileFD.refund();
-        payable(msg.sender).transfer(address(this).balance);
-
         FilesInfo storage info = fileInfos[msg.sender];
-        delete info.files[info.fileIds[nameHash]];
+        require(info.fileIds[nameHash] != 0, "File does not exist");
+
+        delete info.files[info.fileIds[nameHash] - 1];
         delete info.fileIds[nameHash];
         info.length--;
 
-        delete fileAuthors[nameHash];
+        uint256 id = fileFD.remove(getNewName(msg.sender, name));
+        fileFD.refund();
+        payable(msg.sender).transfer(address(this).balance);
         return id;
     }
 
     function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
-        return fileFD.getChunkHash(name, chunkId);
+        return fileFD.getChunkHash(getNewName(msg.sender, name), chunkId);
     }
 
     function countChunks(bytes memory name) public view returns (uint256) {
-        return fileFD.countChunks(name);
+        return fileFD.countChunks(getNewName(msg.sender, name));
+    }
+
+    function getNewName(address author,bytes memory name) public pure returns (bytes memory) {
+        return abi.encodePacked(
+            Strings.toHexString(uint256(uint160(author)), 20),
+            '/',
+            name
+        );
     }
 
     function getUrl(bytes memory name) public view returns (string memory) {
@@ -105,16 +111,18 @@ contract SimpleFilebox {
     }
 
     function getAuthorFiles(address author)
-    public view
-    returns (
-        uint256[] memory times,
-        bytes[] memory names,
-        string[] memory urls
-    )
+        public view
+        returns (
+            uint256[] memory times,
+            bytes[] memory names,
+            bytes[] memory types,
+            string[] memory urls
+        )
     {
         uint256 length = fileInfos[author].length;
         times = new uint256[](length);
         names = new bytes[](length);
+        types = new bytes[](length);
         urls = new string[](length);
 
         uint256 step = 0;
@@ -123,9 +131,11 @@ contract SimpleFilebox {
             if(fileInfos[author].files[i].time != 0) {
                 times[step] = fileInfos[author].files[i].time;
                 names[step] = fileInfos[author].files[i].name;
-                urls[step] = getUrl(names[step]);
+                types[step] = fileInfos[author].files[i].fileType;
+                urls[step] = getUrl(getNewName(author, names[step]));
                 step++;
             }
         }
     }
 }
+
