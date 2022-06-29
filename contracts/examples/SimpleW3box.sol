@@ -29,7 +29,6 @@ contract SimpleW3box {
     }
 
     struct FilesInfo {
-        uint256 length;
         File[] files;
         mapping(bytes32 => uint256) fileIds;
     }
@@ -65,7 +64,6 @@ contract SimpleW3box {
             // first add file
             info.files.push(File(block.timestamp, name, fileType));
             info.fileIds[nameHash] = info.files.length;
-            info.length++;
         }
 
         fileFD.writeChunk{value: msg.value}(getNewName(msg.sender, name), chunkId, data);
@@ -76,9 +74,15 @@ contract SimpleW3box {
         FilesInfo storage info = fileInfos[msg.sender];
         require(info.fileIds[nameHash] != 0, "File does not exist");
 
-        delete info.files[info.fileIds[nameHash] - 1];
+        uint256 lastIndex = info.files.length - 1;
+        uint256 removeIndex = info.fileIds[nameHash] - 1;
+        if (lastIndex != removeIndex) {
+            File storage lastFile = info.files[lastIndex];
+            info.files[removeIndex] = lastFile;
+            info.fileIds[keccak256(lastFile.name)] = removeIndex + 1;
+        }
+        info.files.pop();
         delete info.fileIds[nameHash];
-        info.length--;
 
         uint256 id = fileFD.remove(getNewName(msg.sender, name));
         fileFD.refund();
@@ -119,22 +123,17 @@ contract SimpleW3box {
             string[] memory urls
         )
     {
-        uint256 length = fileInfos[author].length;
+        uint256 length = fileInfos[author].files.length;
         times = new uint256[](length);
         names = new bytes[](length);
         types = new bytes[](length);
         urls = new string[](length);
 
-        uint256 step = 0;
-        uint256 size = fileInfos[author].files.length;
-        for (uint256 i; i < size; i++) {
-            if(fileInfos[author].files[i].time != 0) {
-                times[step] = fileInfos[author].files[i].time;
-                names[step] = fileInfos[author].files[i].name;
-                types[step] = fileInfos[author].files[i].fileType;
-                urls[step] = getUrl(getNewName(author, names[step]));
-                step++;
-            }
+        for (uint256 i; i < length; i++) {
+            times[i] = fileInfos[author].files[i].time;
+            names[i] = fileInfos[author].files[i].name;
+            types[i] = fileInfos[author].files[i].fileType;
+            urls[i] = getUrl(getNewName(author, names[i]));
         }
     }
 }
