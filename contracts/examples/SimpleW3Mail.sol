@@ -42,7 +42,7 @@ contract SimpleW3Mail {
         mapping(bytes => File) files;
     }
 
-    string public constant defaultEmail = "Hi,<br><br>Congratulations for opening your web3 email! you can sign/encrypt to ensure the security.<br><br>Advice For Security:<br>1. Do not trust the content or open links from unknown senders.<br>2. We will never ask for your private key.<br><br>W3Mail is in alpha.";
+    string public constant defaultEmail = "Hi,<br><br>Congratulations for opening your first web3 email!<br><br>Advices For Security:<br>1. Do not trust the content or open links from unknown senders.<br>2. We will never ask for your private key.<br><br>W3Mail is in alpha.<br><br>Best regards,<br>W3Mail Team";
 
     mapping(address => User) userInfos;
 
@@ -205,7 +205,7 @@ contract SimpleW3Mail {
             uuids[i] = info.inboxEmails[i].uuid;
             titles[i] = info.inboxEmails[i].title;
             fileUuids[i] = info.inboxEmails[i].fileUuid;
-            fileNames[i] = info.files[fileUuids[i]].name;
+            fileNames[i] = userInfos[fromMails[i]].files[fileUuids[i]].name;
         }
     }
 
@@ -261,7 +261,7 @@ contract SimpleW3Mail {
         return fileContract.countChunks(getNewName('file', uuid));
     }
 
-    function getPublicKeyAddress(address userAddress) public view returns(bytes32 publicKey) {
+    function getPublicKey(address userAddress) public view returns(bytes32 publicKey) {
         return userInfos[userAddress].publicKey;
     }
 
