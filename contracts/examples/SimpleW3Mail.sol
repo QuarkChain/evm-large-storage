@@ -121,36 +121,53 @@ contract SimpleW3Mail {
         fileContract.writeChunk{value: msg.value}(getNewName('file', uuid), chunkId, data);
     }
 
+    function removeContent(address from, address fromFdContract, bytes memory uuid, bytes memory fileUuid) private {
+        FlatDirectory fileContract = FlatDirectory(fromFdContract);
+        // remove mail
+        fileContract.remove(getNewName(uuid, 'message'));
+        // remove file
+        fileContract.remove(getNewName('file', fileUuid));
+        // claim stake token
+        fileContract.refund();
+        payable(from).transfer(address(this).balance);
+    }
+
     function removeSentEmail(bytes memory uuid) public {
         User storage info = userInfos[msg.sender];
         require(info.sentEmailIds[uuid] != 0, "Email does not exist");
 
-        uint256 lastIndex = info.sentEmails.length - 1;
         uint256 removeIndex = info.sentEmailIds[uuid] - 1;
-        bytes memory fileUuid = info.sentEmails[removeIndex].fileUuid;
+        // remove content
+        Email memory email = info.sentEmails[removeIndex];
+        if(userInfos[email.to].inboxEmailIds[uuid] == 0) {
+            // if inbox is delete
+            removeContent(msg.sender, info.fdContract, uuid, email.fileUuid);
+        }
+
+        // remove info
+        uint256 lastIndex = info.sentEmails.length - 1;
         if (lastIndex != removeIndex) {
             info.sentEmails[removeIndex] = info.sentEmails[lastIndex];
             info.sentEmailIds[info.sentEmails[lastIndex].uuid] = removeIndex + 1;
         }
         info.sentEmails.pop();
         delete info.sentEmailIds[uuid];
-
-
-        FlatDirectory fileContract = FlatDirectory(info.fdContract);
-        // remove emial context
-        fileContract.remove(getNewName(uuid, 'message'));
-        // remove file
-        fileContract.remove(getNewName('file', fileUuid));
-        fileContract.refund();
-        payable(msg.sender).transfer(address(this).balance);
     }
 
     function removeInboxEmail(bytes memory uuid) public {
         User storage info = userInfos[msg.sender];
         require(info.inboxEmailIds[uuid] != 0, "Email does not exist");
 
-        uint256 lastIndex = info.inboxEmails.length - 1;
         uint256 removeIndex = info.inboxEmailIds[uuid] - 1;
+        // remove content
+        Email memory email = info.inboxEmails[removeIndex];
+        if(userInfos[email.from].sentEmailIds[uuid] == 0) {
+            // if sent is delete
+            removeContent(email.from, userInfos[email.from].fdContract, uuid, email.fileUuid);
+        }
+
+        // remove info
+        uint256 lastIndex = info.inboxEmails.length - 1;
         if (lastIndex != removeIndex) {
             info.inboxEmails[removeIndex] = info.inboxEmails[lastIndex];
             info.inboxEmailIds[info.inboxEmails[lastIndex].uuid] = removeIndex + 1;
