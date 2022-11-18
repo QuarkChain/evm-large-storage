@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "../W3RC3.sol";
+import "../ERC5018.sol";
 
-contract FlatDirectory is W3RC3 {
+contract FlatDirectory is ERC5018 {
     bytes public defaultFile = "";
 
-    constructor(uint8 slotLimit) W3RC3(slotLimit) {}
+    constructor(uint8 slotLimit) ERC5018(slotLimit) {}
 
     function resolveMode() external pure virtual returns (bytes32) {
         return "manual";
