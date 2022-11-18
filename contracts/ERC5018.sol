@@ -78,7 +78,7 @@ contract ERC5018 is IERC5018, LargeStorageManager {
         selfdestruct(payable(owner));
     }
 
-    function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
+    function getChunkHash(bytes memory name, uint256 chunkId) public override view returns (bytes32) {
         (bytes memory localData,) = readChunk(name, chunkId);
         return keccak256(localData);
     }
