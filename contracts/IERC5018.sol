@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-interface IW3RC3 {
+interface IERC5018 {
     // Large storage methods
     function write(bytes memory name, bytes memory data) external payable;
 

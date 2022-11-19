@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./IW3RC3.sol";
+import "./IERC5018.sol";
 import "./LargeStorageManager.sol";
 
-contract W3RC3 is IW3RC3, LargeStorageManager {
+contract ERC5018 is IERC5018, LargeStorageManager {
     address public owner;
 
     constructor(uint8 slotLimit) LargeStorageManager(slotLimit) {
