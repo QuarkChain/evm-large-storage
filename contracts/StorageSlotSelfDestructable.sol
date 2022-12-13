@@ -22,11 +22,11 @@ contract StorageSlotSelfDestructableRefundUser {
     address public immutable owner;
 
     constructor() {
-        owner = tx.origin;
+        owner = msg.sender;
     }
 
     function destruct() public {
         require(tx.origin == owner, "not from owner");
-        selfdestruct(payable(tx.origin));
+        selfdestruct(payable(msg.sender));
     }
 }

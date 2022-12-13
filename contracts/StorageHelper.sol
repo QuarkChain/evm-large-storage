@@ -50,15 +50,17 @@ library StorageHelper {
         }
         // append data to self-destruct byte code
         Memory.copy(Memory.dataPtr(data), Memory.dataPtr(bytecode) + bytecodeLen, data.length);
+
+        address sender = msg.sender;
         {
             // revise the owner to the contract (so that it is destructable)
             uint256 off = ADDR_OFF0 + 0x20;
             assembly {
-                mstore(add(bytecode, off), address())
+                mstore(add(bytecode, off), sender)
             }
             off = ADDR_OFF1 + 0x20;
             assembly {
-                mstore(add(bytecode, off), address())
+                mstore(add(bytecode, off), sender)
             }
         }
 
