@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./IERC5018.sol";
-import "./IERCBlob.sol";
+import "./IERC5018ForBlob.sol";
 
 interface EthStorageContract {
     function putBlob(bytes32 key, uint256 blobIdx, uint256 length) external payable;
@@ -11,26 +10,19 @@ interface EthStorageContract {
 
     function remove(bytes32 key) external;
 
+    function size(bytes32 key) external view returns (uint256);
+
+    function hash(bytes32 key) external view returns (bytes24);
+
     function upfrontPayment() external view returns (uint256);
 }
 
-contract ERCBlob is IERC5018, IERCBlob {
-    struct Blob {
-        uint256 idv; // 0 start
-        uint256 length;
-        bytes32 blobKey;
-    }
-
-    struct Chunk {
-        uint256 chunkSize;
-        bytes32 chunkHash;
-        Blob[] blobs;
-    }
+contract ERC5018ForBlob is IERC5018ForBlob {
 
     address public owner;
     EthStorageContract public storageContract;
 
-    mapping(bytes32 => Chunk[]) internal keyToChunk;
+    mapping(bytes32 => bytes32[]) internal keyToChunk;
 
     constructor(address storageAddress) {
         owner = msg.sender;
@@ -42,16 +34,16 @@ contract ERCBlob is IERC5018, IERCBlob {
         owner = newOwner;
     }
 
-    function _chunkSize(bytes32 key, uint256 chunkId) internal view returns (uint256, bool) {
-        if (_countChunks(key) == 0 || chunkId >= _countChunks(key)) {
-            return (0, false);
-        }
-        uint256 size_ = keyToChunk[key][chunkId].chunkSize;
-        return (size_, true);
-    }
-
     function _countChunks(bytes32 key) internal view returns (uint256) {
         return keyToChunk[key].length;
+    }
+
+    function _chunkSize(bytes32 key, uint256 chunkId) internal view returns (uint256, bool) {
+        if (chunkId >= _countChunks(key)) {
+            return (0, false);
+        }
+        uint256 size_ = storageContract.size(keyToChunk[key][chunkId]);
+        return (size_, true);
     }
 
     function _size(bytes32 key) internal view returns (uint256, uint256) {
@@ -70,17 +62,12 @@ contract ERCBlob is IERC5018, IERCBlob {
     }
 
     function _getChunk(bytes32 key, uint256 chunkId) internal view returns (bytes memory, bool) {
-        bytes memory data = new bytes(0);
-        Chunk memory chunk = keyToChunk[key][chunkId];
-        uint256 length = chunk.blobs.length;
+        (uint256 length,) = _chunkSize(key, chunkId);
         if (length < 1) {
-            return (data, false);
+            return (new bytes(0), false);
         }
 
-        for (uint8 i = 0; i < length; i++) {
-            bytes memory temp = storageContract.get(chunk.blobs[i].blobKey, i, chunk.blobs[i].length);
-            data = bytes.concat(data, temp);
-        }
+        bytes memory data = storageContract.get(keyToChunk[key][chunkId], 0, length);
         return (data, true);
     }
 
@@ -104,12 +91,7 @@ contract ERCBlob is IERC5018, IERCBlob {
 
     function _removeChunk(bytes32 key, uint256 chunkId) internal returns (bool) {
         require(_countChunks(key) - 1 == chunkId, "only the last chunk can be removed");
-
-        Chunk storage chunk = keyToChunk[key][chunkId];
-        uint256 length = chunk.blobs.length;
-        for (uint8 i = 0; i < length; i++) {
-            storageContract.remove(chunk.blobs[i].blobKey);
-        }
+        storageContract.remove(keyToChunk[key][chunkId]);
         keyToChunk[key].pop();
         return true;
     }
@@ -120,7 +102,6 @@ contract ERCBlob is IERC5018, IERCBlob {
         for (uint256 i = _countChunks(key) - 1; i >= chunkId; i--) {
             _removeChunk(key, i);
         }
-
         return chunkId;
     }
 
@@ -128,86 +109,72 @@ contract ERCBlob is IERC5018, IERCBlob {
         require(chunkId <= _countChunks(key), "must replace or append");
         if (chunkId < _countChunks(key)) {
             // replace, delete old blob
-            Chunk storage chunk = keyToChunk[key][chunkId];
-            uint256 length = chunk.blobs.length;
-            for (uint8 i = 0; i < length; i++) {
-                storageContract.remove(chunk.blobs[i].blobKey);
-            }
-            delete chunk.blobs;
+            storageContract.remove(keyToChunk[key][chunkId]);
         }
     }
 
-    function _putChunk(
+    function _putChunks(
         bytes32 key,
         uint256 value,
-        uint256 chunkId,
-        bytes32 chunkHash,
-        uint256[] memory blobLengths
+        uint256[] memory chunkIds,
+        uint256[] memory sizes
     ) internal {
-        require(blobLengths.length < 3 && blobLengths.length > 0, "invalid blob length");
+        uint256 length = chunkIds.length;
+        require(0 < length && length < 3, "invalid chunk length");
+
         uint256 cost = storageContract.upfrontPayment();
-        require(value >= cost * blobLengths.length, "insufficient balance");
+        require(value >= cost * length, "insufficient balance");
 
-        _preparePut(key, chunkId);
-
-        Chunk storage chunk = keyToChunk[key][chunkId];
-        // put blob
-        uint256 size_ = 0;
-        uint256 length = blobLengths.length;
         for (uint8 i = 0; i < length; i++) {
-            // TODO
-            bytes32 blobKey = keccak256(abi.encodePacked(chunkHash, i));
+            require(sizes[i] <= 4096 * 31, "invalid blob length");
+            _preparePut(key, chunkIds[i]);
 
-            storageContract.putBlob{value : cost}(blobKey, i, blobLengths[i]);
-            chunk.blobs.push(Blob(i, blobLengths[i], blobKey));
-            size_ += blobLengths[i];
+            bytes32 chunkKey = keccak256(abi.encode(msg.sender, block.timestamp, chunkIds[i], i));
+            storageContract.putBlob{value : cost}(chunkKey, i, sizes[i]);
+            if (chunkIds[i] < _countChunks(key)) {
+                // replace
+                keyToChunk[key][chunkIds[i]] = chunkKey;
+            } else {
+                // add
+                keyToChunk[key].push(chunkKey);
+            }
         }
-        chunk.chunkSize = size_;
-        chunk.chunkHash = chunkHash;
     }
 
 
 
     // interface methods
-    function write(bytes memory name, bytes memory data) external payable {}
-
-    function read(bytes memory name) public view virtual override returns (bytes memory, bool) {
+    function read(bytes memory name) public view override returns (bytes memory, bool) {
         return _get(keccak256(name));
     }
 
-    function size(bytes memory name) public view virtual override returns (uint256, uint256) {
+    function size(bytes memory name) public view override returns (uint256, uint256) {
         return _size(keccak256(name));
     }
 
-    function remove(bytes memory name) public virtual override returns (uint256) {
+    function remove(bytes memory name) public override returns (uint256) {
         require(msg.sender == owner, "must from owner");
         return _remove(keccak256(name), 0);
     }
 
-    function countChunks(bytes memory name) public view virtual override returns (uint256) {
+    function countChunks(bytes memory name) public view override returns (uint256) {
         return _countChunks(keccak256(name));
     }
 
-    function writeChunk(
-        bytes memory name,
-        uint256 chunkId,
-        bytes memory data
-    ) external payable {}
-
-    function readChunk(bytes memory name, uint256 chunkId) public view virtual override returns (bytes memory, bool) {
+    function readChunk(bytes memory name, uint256 chunkId) public view override returns (bytes memory, bool) {
         return _getChunk(keccak256(name), chunkId);
     }
 
-    function chunkSize(bytes memory name, uint256 chunkId) public view virtual override returns (uint256, bool) {
+    function chunkSize(bytes memory name, uint256 chunkId) public view override returns (uint256, bool) {
         return _chunkSize(keccak256(name), chunkId);
     }
 
-    function removeChunk(bytes memory name, uint256 chunkId) public virtual override returns (bool) {
+    function removeChunk(bytes memory name, uint256 chunkId) public override returns (bool) {
         require(msg.sender == owner, "must from owner");
         return _removeChunk(keccak256(name), chunkId);
     }
 
-    function truncate(bytes memory name, uint256 chunkId) public virtual override returns (uint256) {
+    function truncate(bytes memory name, uint256 chunkId) public override returns (uint256) {
         require(msg.sender == owner, "must from owner");
         return _remove(keccak256(name), chunkId);
     }
@@ -224,25 +191,20 @@ contract ERCBlob is IERC5018, IERCBlob {
 
     function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
         bytes32 key = keccak256(name);
-        if (_countChunks(key) == 0 || chunkId >= _countChunks(key)) {
+        if (chunkId >= _countChunks(key)) {
             return bytes32(0);
         }
-        return keyToChunk[key][chunkId].chunkHash;
+        return storageContract.hash(keyToChunk[key][chunkId]);
     }
 
     // Chunk-based large storage methods
-    function writeChunkBlob(
-        bytes memory name,
-        uint256 chunkId,
-        bytes32 chunkHash,
-        uint256[] memory blobLengths
-    ) public payable virtual override {
+    function writeChunk(bytes memory name, uint256[] memory chunkIds, uint256[] memory sizes) public override payable {
         require(msg.sender == owner, "must from owner");
-        _putChunk(keccak256(name), msg.value, chunkId, chunkHash, blobLengths);
+        _putChunks(keccak256(name), msg.value, chunkIds, sizes);
         refund();
     }
 
-    function upfrontPayment() external view returns (uint256) {
+    function upfrontPayment() external override view returns (uint256) {
         return storageContract.upfrontPayment();
     }
 }
