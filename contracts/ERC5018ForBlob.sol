@@ -24,8 +24,12 @@ contract ERC5018ForBlob is IERC5018ForBlob {
 
     mapping(bytes32 => bytes32[]) internal keyToChunk;
 
-    constructor(address storageAddress) {
+    constructor() {
         owner = msg.sender;
+    }
+
+    function setEthStorageContract(address storageAddress) public {
+        require(msg.sender == owner, "must from owner");
         storageContract = EthStorageContract(storageAddress);
     }
 
