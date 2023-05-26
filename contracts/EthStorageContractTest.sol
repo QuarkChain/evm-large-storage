@@ -6,7 +6,7 @@ import "./LargeStorageManager.sol";
 
 contract EthStorageContractTest is LargeStorageManager(0) {
 
-    event PutBlob(bytes32 indexed key, uint256 indexed blobIdx, uint256 indexed length);
+    event PutBlob(bytes32 key, uint256 blobIdx, uint256 length);
 
     // implement
     function putBlob(bytes32 key, uint256 blobIdx, uint256 length) external payable {
