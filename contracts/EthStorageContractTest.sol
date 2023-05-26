@@ -19,9 +19,7 @@ contract EthStorageContractTest is LargeStorageManager(0) {
     }
 
     function remove(bytes32 key) external {
-        for (uint256 i = _countChunks(key) - 1; i >= 0; i--) {
-            _removeChunk(key, i);
-        }
+        _remove(key, 0);
     }
 
     function get(bytes32 key, uint256 off, uint256 len) external view returns (bytes memory data) {
