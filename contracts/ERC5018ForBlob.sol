@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./IERC5018ForBlob.sol";
 
 interface EthStorageContract {
@@ -17,25 +18,14 @@ interface EthStorageContract {
     function upfrontPayment() external view returns (uint256);
 }
 
-contract ERC5018ForBlob is IERC5018ForBlob {
+contract ERC5018ForBlob is IERC5018ForBlob, Ownable {
 
-    address public owner;
     EthStorageContract public storageContract;
 
     mapping(bytes32 => bytes32[]) internal keyToChunk;
 
-    constructor() {
-        owner = msg.sender;
-    }
-
-    function setEthStorageContract(address storageAddress) public {
-        require(msg.sender == owner, "must from owner");
+    function setEthStorageContract(address storageAddress) public onlyOwner {
         storageContract = EthStorageContract(storageAddress);
-    }
-
-    function changeOwner(address newOwner) public {
-        require(msg.sender == owner, "must from owner");
-        owner = newOwner;
     }
 
     function _countChunks(bytes32 key) internal view returns (uint256) {
@@ -153,8 +143,7 @@ contract ERC5018ForBlob is IERC5018ForBlob {
         return _size(keccak256(name));
     }
 
-    function remove(bytes memory name) public override returns (uint256) {
-        require(msg.sender == owner, "must from owner");
+    function remove(bytes memory name) public onlyOwner override returns (uint256) {
         return _remove(keccak256(name), 0);
     }
 
@@ -170,24 +159,20 @@ contract ERC5018ForBlob is IERC5018ForBlob {
         return _chunkSize(keccak256(name), chunkId);
     }
 
-    function removeChunk(bytes memory name, uint256 chunkId) public override returns (bool) {
-        require(msg.sender == owner, "must from owner");
+    function removeChunk(bytes memory name, uint256 chunkId) public onlyOwner override returns (bool) {
         return _removeChunk(keccak256(name), chunkId);
     }
 
-    function truncate(bytes memory name, uint256 chunkId) public override returns (uint256) {
-        require(msg.sender == owner, "must from owner");
+    function truncate(bytes memory name, uint256 chunkId) public onlyOwner override returns (uint256) {
         return _remove(keccak256(name), chunkId);
     }
 
-    function refund() public override {
-        require(msg.sender == owner, "must from owner");
-        payable(owner).transfer(address(this).balance);
+    function refund() public onlyOwner override {
+        payable(owner()).transfer(address(this).balance);
     }
 
-    function destruct() public override {
-        require(msg.sender == owner, "must from owner");
-        selfdestruct(payable(owner));
+    function destruct() public onlyOwner override {
+        selfdestruct(payable(owner()));
     }
 
     function getChunkHash(bytes memory name, uint256 chunkId) public view returns (bytes32) {
@@ -199,8 +184,7 @@ contract ERC5018ForBlob is IERC5018ForBlob {
     }
 
     // Chunk-based large storage methods
-    function writeChunk(bytes memory name, uint256[] memory chunkIds, uint256[] memory sizes) public override payable {
-        require(msg.sender == owner, "must from owner");
+    function writeChunk(bytes memory name, uint256[] memory chunkIds, uint256[] memory sizes) public onlyOwner override payable {
         _putChunks(keccak256(name), chunkIds, sizes);
         refund();
     }
