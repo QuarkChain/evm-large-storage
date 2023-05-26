@@ -119,15 +119,12 @@ contract ERC5018ForBlob is IERC5018ForBlob {
 
     function _putChunks(
         bytes32 key,
-        uint256 value,
         uint256[] memory chunkIds,
         uint256[] memory sizes
     ) internal {
         uint256 length = chunkIds.length;
-        require(0 < length && length < 3, "invalid chunk length");
-
         uint256 cost = storageContract.upfrontPayment();
-        require(value >= cost * length, "insufficient balance");
+        require(msg.value >= cost * length, "insufficient balance");
 
         for (uint8 i = 0; i < length; i++) {
             require(sizes[i] <= 4096 * 31, "invalid blob length");
@@ -204,7 +201,7 @@ contract ERC5018ForBlob is IERC5018ForBlob {
     // Chunk-based large storage methods
     function writeChunk(bytes memory name, uint256[] memory chunkIds, uint256[] memory sizes) public override payable {
         require(msg.sender == owner, "must from owner");
-        _putChunks(keccak256(name), msg.value, chunkIds, sizes);
+        _putChunks(keccak256(name), chunkIds, sizes);
         refund();
     }
 
