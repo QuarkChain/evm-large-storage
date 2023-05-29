@@ -23,7 +23,8 @@
     "prettier-plugin-solidity": "^1.0.0-beta.18",
     "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.17",
-    "solidity-rlp": "^2.0.5"
+    "solidity-rlp": "^2.0.5",
+    "js-sha3": "^0.8.0"
   },
   "scripts": {
     "compile": "hardhat compile",
