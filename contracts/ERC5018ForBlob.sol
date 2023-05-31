@@ -93,8 +93,14 @@ contract ERC5018ForBlob is IERC5018ForBlob, Ownable {
     function _remove(bytes32 key, uint256 chunkId) internal returns (uint256) {
         require(_countChunks(key) > 0, "the file has no content");
 
-        for (uint256 i = _countChunks(key) - 1; i >= chunkId; i--) {
-            _removeChunk(key, i);
+        for (uint256 i = _countChunks(key) - 1; i >= chunkId;) {
+            storageContract.remove(keyToChunk[key][chunkId]);
+            keyToChunk[key].pop();
+            if (i == 0) {
+                break;
+            } else {
+                i--;
+            }
         }
         return chunkId;
     }
