@@ -66,7 +66,7 @@ const createLocalHash = function (length) {
 
 const uploadFile = async function (hexName, file, fileSize, storage, ercBlob) {
     let chunks = [];
-    // Data need to be sliced if file > 124K， 1 blob = 4096 * 31 = 124kb
+    // Data need to be sliced if file > 126.976k， 1 blob = 4096 * 31 = 126.976k
     if (fileSize > BLOB_SIZE) {
         chunks = bufferBlob(file);
     } else {
@@ -122,7 +122,7 @@ describe("4844 Blob Storage Test", function () {
         // put
         const fileName = 'test.txt';
         const hexName = '0x' + Buffer.from(fileName, 'utf8').toString('hex');
-        const fileSize = BLOB_SIZE * 3 + 1024;
+        const fileSize = BLOB_SIZE * 2 + 1024;
         const localFile = Buffer.from(Array(fileSize).fill(1));
         await uploadFile(hexName, localFile, fileSize, storage, ercBlob);
 
