@@ -78,7 +78,7 @@ contract ERC5018ForBlob is IERC5018ForBlob, Ownable {
         for (uint256 chunkId = 0; chunkId < chunkNum; chunkId++) {
             bytes32 chunkKey = keyToChunk[key][chunkId];
             uint256 length = chunkSizes[chunkKey];
-            bytes memory chunk = storageContract.get(chunkKey, 0, length);
+            storageContract.get(chunkKey, 0, length);
 
             assembly {
                 returndatacopy(add(add(concatenatedData, offset), 0x20), 0x40, length)
