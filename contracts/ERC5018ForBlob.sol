@@ -68,21 +68,25 @@ contract ERC5018ForBlob is IERC5018ForBlob, Ownable {
     }
 
     function _get(bytes32 key) internal view returns (bytes memory, bool) {
-        (, uint256 chunkNum) = _size(key);
+        (uint256 fileSize, uint256 chunkNum) = _size(key);
         if (chunkNum == 0) {
             return (new bytes(0), false);
         }
 
-        bytes memory data;
+        bytes memory concatenatedData = new bytes(fileSize);
+        uint256 offset = 0;
         for (uint256 chunkId = 0; chunkId < chunkNum; chunkId++) {
-            (bytes memory temp, bool state) = _getChunk(key, chunkId);
-            if (!state) {
-                break;
+            bytes32 chunkKey = keyToChunk[key][chunkId];
+            uint256 length = chunkSizes[chunkKey];
+            bytes memory chunk = storageContract.get(chunkKey, 0, length);
+
+            assembly {
+                returndatacopy(add(add(concatenatedData, offset), 0x20), 0x40, length)
             }
-            data = bytes.concat(data, temp);
+            offset += length;
         }
 
-        return (data, true);
+        return (concatenatedData, true);
     }
 
     function _removeChunk(bytes32 key, uint256 chunkId) internal returns (bool) {
